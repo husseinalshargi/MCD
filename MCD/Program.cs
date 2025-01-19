@@ -1,10 +1,10 @@
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// to Add services to the container. -> add in thus file
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
-
+//when you add new app settings edit here
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
@@ -19,7 +19,7 @@ app.UseStaticFiles();
 app.UseRouting();
 
 app.UseAuthorization();
-
+// here are the dafault route if there is any error
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
