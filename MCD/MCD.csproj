@@ -14,4 +14,10 @@
     </PackageReference>
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\MCD.DataAccess\MCD.DataAccess.csproj" />
+    <ProjectReference Include="..\MCD.Models\MCD.Models.csproj" />
+    <ProjectReference Include="..\MCD.Utility\MCD.Utility.csproj" />
+  </ItemGroup>
+
 </Project>

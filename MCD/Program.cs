@@ -1,4 +1,4 @@
-using MCD.Data;
+using MCD.DataAccess.Data;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);

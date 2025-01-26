@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using MCD.Models;
 
-namespace MCD.Data
+namespace MCD.DataAccess.Data
 {
     public class ApplicationDbContext : DbContext
     {
