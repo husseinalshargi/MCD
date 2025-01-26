@@ -12,17 +12,19 @@ namespace MCD.Models
     {
         //[--] -> validation
         //Document table content:
-        //the document id is the key
+        // DocumentId is the key
         [Key]
         public int Id { get; set; }
         
         //to add a foregin key (uncomment after adding all tables...)
         public int UserId { get; set; }
         //[ForeignKey("UserId")]
+        //[ValidateNever]
         //public User user { get; set; }
 
         public int CategoryId { get; set; }
         //[ForeignKey("CategoryId")]
+        //[ValidateNever]
         //public Category category { get; set; }
 
         [Required] //to be requierd in the data validation when entering the data

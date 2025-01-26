@@ -11,5 +11,10 @@ namespace MCD.DataAccess.Data
         // after that add a new migration to create a table with the name of (the variable name
         // then update the database (Package Manager Console)
         public DbSet<Document> Documents { get; set; }
+
+        // after appling ocr we will have a table of the extracted files contents
+        public DbSet<ExtractedDocument> ExtractedDocuments { get; set; }
+
+
     }
 }
