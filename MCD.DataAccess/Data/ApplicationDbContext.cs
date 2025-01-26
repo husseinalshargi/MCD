@@ -20,5 +20,8 @@ namespace MCD.DataAccess.Data
 
         // create also category table
         public DbSet<Category> Categories { get; set; }
+
+        // creat entites table
+        public DbSet<Entity> Entities { get; set; }
     }
 }

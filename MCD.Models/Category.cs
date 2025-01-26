@@ -14,7 +14,7 @@ namespace MCD.Models
         public int Id { get; set; }
 
         [Required]
-        [MaxLength(30)]
+        [StringLength(30, MinimumLength = 1)]
         public required string CategoryName { get; set; }
 
     }

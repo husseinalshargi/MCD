@@ -21,7 +21,7 @@ namespace MCD.Models
         [ValidateNever] //because it isn't entered by the user
         public required Document Document { get; set; } //for adding a forgein key we need to connect it with another table 
 
-        [Required]
+        [ValidateNever]
         public required string SummarizedFileName { get; set; }
 
         public string? Language { get; set; }

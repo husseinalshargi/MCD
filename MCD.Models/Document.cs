@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -23,16 +24,16 @@ namespace MCD.Models
         //public User user { get; set; }
 
         public int CategoryId { get; set; }
-        //[ForeignKey("CategoryId")]
-        //[ValidateNever]
-        //public Category category { get; set; }
+        [ForeignKey("CategoryId")]
+        [ValidateNever]
+        public required Category Category { get; set; }
 
         [Required] //to be requierd in the data validation when entering the data
-        [Range(1,50)]
+        [StringLength(50, MinimumLength = 1)] // the length of the string should be in between 1-50
         public required string Title { get; set; }
 
         [Required] //to be requierd in the data validation when entering the data
-        [Range(1, 50)]
+        [StringLength(50, MinimumLength = 1)]
         public required string FileName { get; set; } // to use in path (which will be in wwwroot)\ FileName.FileType
 
         [Required]
