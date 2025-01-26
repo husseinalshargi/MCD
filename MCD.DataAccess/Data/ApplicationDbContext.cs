@@ -18,6 +18,7 @@ namespace MCD.DataAccess.Data
         // after summarizing the text file referance will be saved in the SummarizedDocument table
         public DbSet<SummarizedDocument> SummarizedDocuments { get; set; }
 
-
+        // create also category table
+        public DbSet<Category> Categories { get; set; }
     }
 }
