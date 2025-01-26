@@ -15,6 +15,9 @@ namespace MCD.DataAccess.Data
         // after appling ocr we will have a table of the extracted files contents
         public DbSet<ExtractedDocument> ExtractedDocuments { get; set; }
 
+        // after summarizing the text file referance will be saved in the SummarizedDocument table
+        public DbSet<SummarizedDocument> SummarizedDocuments { get; set; }
+
 
     }
 }
