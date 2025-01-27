@@ -21,7 +21,12 @@ namespace MCD.DataAccess.Data
         // create also category table
         public DbSet<Category> Categories { get; set; }
 
-        // creat entites table
+        // create entites table
         public DbSet<Entity> Entities { get; set; }
+
+        //ai module types table -> ocr, nlp, etc...
+        public DbSet<AIModule> AIModules { get; set; }
+
+
     }
 }
