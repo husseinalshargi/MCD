@@ -1,10 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using MCD.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
 
 namespace MCD.DataAccess.Data
 {
-    public class ApplicationDbContext : IdentityDbContext
+    public class ApplicationDbContext : IdentityDbContext<IdentityUser>
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)//just configeration
         { }
@@ -13,22 +14,22 @@ namespace MCD.DataAccess.Data
         // then update the database (Package Manager Console)
         public DbSet<Document> Documents { get; set; }
 
-        // after appling ocr we will have a table of the extracted files contents
+        // after Appling ocr we will have a table of the extracted files contents
         public DbSet<ExtractedDocument> ExtractedDocuments { get; set; }
 
-        // after summarizing the text file referance will be saved in the SummarizedDocument table
+        // after summarizing the text file reference will be saved in the SummarizedDocument table
         public DbSet<SummarizedDocument> SummarizedDocuments { get; set; }
 
         // create also category table
         public DbSet<Category> Categories { get; set; }
 
-        // create entites table
+        // create entities table
         public DbSet<Entity> Entities { get; set; }
 
         //ai module types table -> ocr, nlp, etc...
         public DbSet<AIModule> AIModules { get; set; }
 
-        // to access a document of another user -> authorised users
+        // to access a document of another user -> authorized users
         public DbSet<SharedDocument> SharedDocuments { get; set; }
 
         //audit logs table -> for any action in a document
