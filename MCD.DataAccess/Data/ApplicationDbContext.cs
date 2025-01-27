@@ -30,6 +30,8 @@ namespace MCD.DataAccess.Data
         // to access a document of another user -> authorised users
         public DbSet<SharedDocument> SharedDocuments { get; set; }
 
+        //audit logs table -> for any action in a document
+        public DbSet<AuditLog> AuditLogs { get; set; }
 
     }
 }
