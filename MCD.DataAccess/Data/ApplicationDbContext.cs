@@ -1,9 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using MCD.Models;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
 namespace MCD.DataAccess.Data
 {
-    public class ApplicationDbContext : DbContext
+    public class ApplicationDbContext : IdentityDbContext
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)//just configeration
         { }
@@ -32,6 +33,26 @@ namespace MCD.DataAccess.Data
 
         //audit logs table -> for any action in a document
         public DbSet<AuditLog> AuditLogs { get; set; }
+
+
+
+
+
+
+
+
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            //to seed tables:
+
+            //modelBuilder.Entity<Document>().HasData(
+            //    new Document { }
+            //    );
+        }
+
 
     }
 }
