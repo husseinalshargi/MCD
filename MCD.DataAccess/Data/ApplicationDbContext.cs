@@ -27,6 +27,9 @@ namespace MCD.DataAccess.Data
         //ai module types table -> ocr, nlp, etc...
         public DbSet<AIModule> AIModules { get; set; }
 
+        // to access a document of another user -> authorised users
+        public DbSet<SharedDocument> SharedDocuments { get; set; }
+
 
     }
 }
