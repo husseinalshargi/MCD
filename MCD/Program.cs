@@ -2,6 +2,8 @@ using MCD.DataAccess.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using MCD.Models;
+using MCD.Utility;
+using Microsoft.AspNetCore.Identity.UI.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,11 +18,13 @@ builder.Services.AddDbContext<ApplicationDbContext>(options=>
 //after creating a class to implement from identityuser -> to extend the table of user. you should replace here from identityuser to the class that extends from it
 //also don't forget to change all identityuser to applicationuser -> in all the identity pages
 //to add the roles also you should make the function addidentity rhather than addefaultidentity
-builder.Services.AddIdentity<ApplicationUser, IdentityRole>().AddEntityFrameworkStores<ApplicationDbContext>(); //to add more columns to the user table you should extend IdentityUser and replace the one in here
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>().AddEntityFrameworkStores<ApplicationDbContext>().AddDefaultTokenProviders(); //to add more columns to the user table you should extend IdentityUser and replace the one in here
+
 builder.Services.AddRazorPages(); //so that it handles razor pages where there is only area-page
 //such as in authentication
 
-
+//in order to send emails in the future edit the send email file
+builder.Services.AddScoped<IEmailSender, EmailSender>(); // to tell asp core that the implementation of sending emails will be in email sender
 
 
 var app = builder.Build();
