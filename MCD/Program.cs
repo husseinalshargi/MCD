@@ -1,6 +1,7 @@
 using MCD.DataAccess.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
+using MCD.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,7 +13,9 @@ builder.Services.AddDbContext<ApplicationDbContext>(options=>
 
 // the option is that the user cannot log in without conforming his account (place it in <ident...>(options => options.SignIn.RequireConfirmedAccount = true)
 // the next part is to add all tables of identity in db
-builder.Services.AddDefaultIdentity<IdentityUser>().AddEntityFrameworkStores<ApplicationDbContext>();
+//after creating a class to implement from identityuser -> to extend the table of user. you should replace here from identityuser to the class that extends from it
+//also don't forget to change all identityuser to applicationuser -> in all the identity pages
+builder.Services.AddDefaultIdentity<ApplicationUser>().AddEntityFrameworkStores<ApplicationDbContext>(); //to add more columns to the user table you should extend IdentityUser and replace the one in here
 builder.Services.AddRazorPages(); //so that it handles razor pages where there is only area-page
 //such as in authentication
 
