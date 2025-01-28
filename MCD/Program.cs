@@ -15,7 +15,8 @@ builder.Services.AddDbContext<ApplicationDbContext>(options=>
 // the next part is to add all tables of identity in db
 //after creating a class to implement from identityuser -> to extend the table of user. you should replace here from identityuser to the class that extends from it
 //also don't forget to change all identityuser to applicationuser -> in all the identity pages
-builder.Services.AddDefaultIdentity<ApplicationUser>().AddEntityFrameworkStores<ApplicationDbContext>(); //to add more columns to the user table you should extend IdentityUser and replace the one in here
+//to add the roles also you should make the function addidentity rhather than addefaultidentity
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>().AddEntityFrameworkStores<ApplicationDbContext>(); //to add more columns to the user table you should extend IdentityUser and replace the one in here
 builder.Services.AddRazorPages(); //so that it handles razor pages where there is only area-page
 //such as in authentication
 

@@ -8,5 +8,12 @@ namespace MCD.Utility
 {
     public static class SD // static details for all the constants of our project
     {
+        //we add roles here in order to avoid hard coding, duplication...
+        //regular user
+        public const string Role_Customer = "Customer";
+        //an employee to control user accounts
+        public const string Role_Employee = "Employee";
+        //an admin that can control all
+        public const string Role_Admin = "admin";
     }
 }
