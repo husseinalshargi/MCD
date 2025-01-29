@@ -35,7 +35,8 @@ namespace MCD.DataAccess.Data
         //audit logs table -> for any action in a document
         public DbSet<AuditLog> AuditLogs { get; set; }
 
-
+        //here to create the user table
+        public DbSet<ApplicationUser> ApplicationUsers { get; set; }
 
 
 
