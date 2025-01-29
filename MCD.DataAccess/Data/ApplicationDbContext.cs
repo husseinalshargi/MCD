@@ -53,6 +53,20 @@ namespace MCD.DataAccess.Data
             //modelBuilder.Entity<Document>().HasData(
             //    new Document { }
             //    );
+
+
+            // in order to make the relationship one to many, also will eliminate cascade problem in EF
+            modelBuilder.Entity<SharedDocument>()
+            .HasOne(sd => sd.Document)
+            .WithMany(d => d.SharedDocuments)
+            .HasForeignKey(sd => sd.DocumentId)
+            .OnDelete(DeleteBehavior.NoAction); // Prevent cascade delete for Document
+
+            modelBuilder.Entity<SharedDocument>()
+            .HasOne(sd => sd.ApplicationUser)
+            .WithMany(u => u.SharedDocuments)
+            .HasForeignKey(sd => sd.ApplicationUserId)
+            .OnDelete(DeleteBehavior.NoAction); // Prevent cascade delete for ApplicationUser
         }
 
 
