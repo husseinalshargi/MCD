@@ -32,6 +32,9 @@ builder.Services.AddScoped<IEmailSender, EmailSender>(); // to tell asp core tha
 //every time you add a repo you should register it here in order to use dependency injection
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<IAIModuleRepository, AIModuleRepository>();
+builder.Services.AddScoped<IApplicationUserRepository, ApplicationUserRepository>();
+
+
 
 var app = builder.Build();
 //when you add new app settings edit here

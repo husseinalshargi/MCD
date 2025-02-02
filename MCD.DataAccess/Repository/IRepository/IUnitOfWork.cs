@@ -11,6 +11,7 @@ namespace MCD.DataAccess.Repository.IRepository
         //add here the repos interfaces
         ICategoryRepository Category { get; }
         IAIModuleRepository Module { get; }
+        IApplicationUserRepository ApplicationUser { get; }
 
         void Save(); //as some all have the same concept
     }
