@@ -30,7 +30,7 @@ namespace MCD.DataAccess.Repository.IRepository
 
 
         //update: if we wanted to do so but it is not included because each class have its way of updating also not all fields will be updated
-        // so it will be defined when it is required 
+        // so it will be defined when it is required in the ClassNameRepository with the save method
         //void Update(T entity);
 
         //delete:

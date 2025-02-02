@@ -4,6 +4,9 @@ using Microsoft.AspNetCore.Identity;
 using MCD.Models;
 using MCD.Utility;
 using Microsoft.AspNetCore.Identity.UI.Services;
+using MCD.DataAccess.Repository.IRepository;
+using MCD.DataAccess.Repository;
+using Microsoft.Extensions.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,6 +28,9 @@ builder.Services.AddRazorPages(); //so that it handles razor pages where there i
 
 //in order to send emails in the future edit the send email file
 builder.Services.AddScoped<IEmailSender, EmailSender>(); // to tell asp core that the implementation of sending emails will be in email sender
+
+//every time you add a repo you should register it here in order to use dependency injection
+builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 
 
 var app = builder.Build();
