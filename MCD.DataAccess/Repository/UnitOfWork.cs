@@ -12,11 +12,13 @@ namespace MCD.DataAccess.Repository
     {
         private ApplicationDbContext _db;
         public ICategoryRepository Category { get; private set; }
+        public IAIModuleRepository Module { get; private set; }
         public UnitOfWork(ApplicationDbContext db)
         {
             _db = db;
             //here the implementation of the repos in order to use this class for all of them
             Category = new CategoryRepository(_db);
+            Module = new AIModuleRepository(_db);
         }
 
 
