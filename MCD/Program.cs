@@ -30,10 +30,8 @@ builder.Services.AddRazorPages(); //so that it handles razor pages where there i
 builder.Services.AddScoped<IEmailSender, EmailSender>(); // to tell asp core that the implementation of sending emails will be in email sender
 
 //every time you add a repo you should register it here in order to use dependency injection
-builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
-builder.Services.AddScoped<IAIModuleRepository, AIModuleRepository>();
-builder.Services.AddScoped<IApplicationUserRepository, ApplicationUserRepository>();
-
+//edit: rather than adding one for each repo we could use only one (the one that implement all)
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 
 var app = builder.Build();

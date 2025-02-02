@@ -14,6 +14,9 @@ namespace MCD.DataAccess.Repository
         public ICategoryRepository Category { get; private set; }
         public IAIModuleRepository Module { get; private set; }
         public IApplicationUserRepository ApplicationUser { get; private set; }
+        public IAuditLogRepository AuditLog { get; private set; }
+
+
         public UnitOfWork(ApplicationDbContext db)
         {
             _db = db;
@@ -21,6 +24,7 @@ namespace MCD.DataAccess.Repository
             Category = new CategoryRepository(_db);
             Module = new AIModuleRepository(_db);
             ApplicationUser = new ApplicationUserRepository(_db);
+            AuditLog = new AuditLogRepository(_db);
         }
 
 
