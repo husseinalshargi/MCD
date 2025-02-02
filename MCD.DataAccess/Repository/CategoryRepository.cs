@@ -17,11 +17,7 @@ namespace MCD.DataAccess.Repository
         {
             _db = db;
         }
-        public void Save()
-        {
-            // in order to use this function each time we are saving
-            _db.SaveChanges();
-        }
+
 
         public void Update(Category obj)
         {
