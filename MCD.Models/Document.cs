@@ -16,12 +16,12 @@ namespace MCD.Models
         // DocumentId is the key
         [Key]
         public int Id { get; set; }
-        
-        //to add a foregin key (uncomment after adding all tables...)
-        public int UserId { get; set; }
-        //[ForeignKey("UserId")]
-        //[ValidateNever]
-        //public User user { get; set; }
+
+        //identityuser id type is string not int
+        public string ApplicationUserId { get; set; }
+        [ForeignKey("ApplicationUserId")]
+        [ValidateNever]
+        public ApplicationUser ApplicationUser { get; set; }
 
         public int CategoryId { get; set; }
         [ForeignKey("CategoryId")]
@@ -51,5 +51,9 @@ namespace MCD.Models
 
         [Required] 
         public required string AITaskStatus { get; set; } // processing processed etc..
+
+        // to make the relation one-to-many -> document can have more than one shared instance
+        //to remove cascade problem 
+        public ICollection<SharedDocument> SharedDocuments { get; set; }
     }
 }

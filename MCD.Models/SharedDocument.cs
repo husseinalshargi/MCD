@@ -14,12 +14,10 @@ namespace MCD.Models
         [Key]
         public int Id { get; set; }
 
-        //uncomment after adding users table
-        //[Required]
-        //public int UserId { get; set; }
-        //[Required]
-        //[ForeignKey("UserId")]
-        //public User User { get; set; }
+        public string ApplicationUserId { get; set; }
+        [ForeignKey("ApplicationUserId")]
+        [ValidateNever]
+        public ApplicationUser ApplicationUser { get; set; }
 
         [ValidateNever]
         public int DocumentId { get; set; }

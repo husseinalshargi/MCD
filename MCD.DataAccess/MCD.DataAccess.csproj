@@ -21,4 +21,8 @@
     <ProjectReference Include="..\MCD.Utility\MCD.Utility.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Migrations\" />
+  </ItemGroup>
+
 </Project>

@@ -19,7 +19,9 @@ namespace MCD.Models
         [Required]
         public string LastName { get; set; }
 
-        
+        //to remove cascade problem -> also a user can be shared with more than one document
+        public ICollection<SharedDocument> SharedDocuments { get; set; }
+
 
     }
 }

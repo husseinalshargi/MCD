@@ -14,10 +14,11 @@ namespace MCD.Models
         [Key]
         public int Id { get; set; }
 
-        //public int UserId { get; set; }
-        //[ForeignKey("UserId")]
-        //[ValidateNever]
-        //public User User { get; set; }
+        //identityuser id type is string not int
+        public string ApplicationUserId { get; set; }
+        [ForeignKey("ApplicationUserId")]
+        [ValidateNever]
+        public ApplicationUser ApplicationUser { get; set; }
 
         [Required]
         public string? Action { get; set; }
