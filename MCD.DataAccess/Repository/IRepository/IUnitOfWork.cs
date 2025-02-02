@@ -13,6 +13,7 @@ namespace MCD.DataAccess.Repository.IRepository
         IAIModuleRepository Module { get; }
         IApplicationUserRepository ApplicationUser { get; }
         IAuditLogRepository AuditLog { get; }
+        IDocumentRepository Document { get; }
 
         void Save(); //as some all have the same concept
     }

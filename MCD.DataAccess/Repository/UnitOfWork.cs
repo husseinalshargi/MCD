@@ -15,6 +15,7 @@ namespace MCD.DataAccess.Repository
         public IAIModuleRepository Module { get; private set; }
         public IApplicationUserRepository ApplicationUser { get; private set; }
         public IAuditLogRepository AuditLog { get; private set; }
+        public IDocumentRepository Document { get; private set; }
 
 
         public UnitOfWork(ApplicationDbContext db)
@@ -25,6 +26,7 @@ namespace MCD.DataAccess.Repository
             Module = new AIModuleRepository(_db);
             ApplicationUser = new ApplicationUserRepository(_db);
             AuditLog = new AuditLogRepository(_db);
+            Document = new DocumentRepository(_db);
         }
 
 
