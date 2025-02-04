@@ -18,6 +18,7 @@ namespace MCD.DataAccess.Repository
         public IDocumentRepository Document { get; private set; }
         public IEntityRepository Entity { get; private set; }
         public IExtractedDocumentRepository ExtractedDocument { get; private set; }
+        public ISharedDocumentRepository SharedDocument { get; private set; }
 
 
         public UnitOfWork(ApplicationDbContext db)
@@ -31,6 +32,7 @@ namespace MCD.DataAccess.Repository
             Document = new DocumentRepository(_db);
             Entity = new EntityRepository(_db);
             ExtractedDocument = new ExtractedDocumentRepository(_db);
+            SharedDocument = new SharedDocumentRepository(_db);
         }
 
 
