@@ -17,6 +17,7 @@ namespace MCD.DataAccess.Repository
         public IAuditLogRepository AuditLog { get; private set; }
         public IDocumentRepository Document { get; private set; }
         public IEntityRepository Entity { get; private set; }
+        public IExtractedDocumentRepository ExtractedDocument { get; private set; }
 
 
         public UnitOfWork(ApplicationDbContext db)
@@ -29,6 +30,7 @@ namespace MCD.DataAccess.Repository
             AuditLog = new AuditLogRepository(_db);
             Document = new DocumentRepository(_db);
             Entity = new EntityRepository(_db);
+            ExtractedDocument = new ExtractedDocumentRepository(_db);
         }
 
 

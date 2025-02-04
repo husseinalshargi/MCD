@@ -15,6 +15,7 @@ namespace MCD.DataAccess.Repository.IRepository
         IAuditLogRepository AuditLog { get; }
         IDocumentRepository Document { get; }
         IEntityRepository Entity { get; }
+        IExtractedDocumentRepository ExtractedDocument { get; }
 
         void Save(); //as some all have the same concept
     }
