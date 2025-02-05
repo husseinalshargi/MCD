@@ -3,6 +3,41 @@
 }
 
 <div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+
+    <button class="uploadDocument" onclick="openPopup()">Upload a document</button>
+
+    <table>
+        <tr>
+            <th>Document</th>
+            <th>Name</th>
+            <th>Extracted Text</th>
+            <th>Named Entites</th>
+            <th>Category/ies</th>
+            <th>Summerized Text</th>
+        </tr>
+    </table>
+
+
+    <div class="overlay" id="overlay" onclick="closePopup()"></div>
+    <div class="popup" id="popup">
+        <p>The accepted types are: PDF and PNG</p>
+        <input type="file" id="newFile">
+        <button onclick="closePopup()">Close</button>
+        <div class=uploadOptions>
+            <input type="checkbox" id="checkboxSummerize">
+            <label for="checkboxSummerize">Summarize the extracted text</label>
+        </div>
+    </div>
+
+    <script>
+        function openPopup() {
+            document.getElementById("popup").style.display = "block";
+            document.getElementById("overlay").style.display = "block";
+        }
+
+        function closePopup() {
+            document.getElementById("popup").style.display = "none";
+            document.getElementById("overlay").style.display = "none";
+        }
+    </script>
 </div>
