@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Security.Claims;
+using System.Threading.Tasks;
 using MCD.DataAccess.Data;
 using MCD.DataAccess.Repository;
 using MCD.DataAccess.Repository.IRepository;
@@ -39,10 +40,10 @@ namespace MCD.Controllers
             var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
 
 
-            // in order to return a list of all the documents, or a single one for uploading:
-            List<Document> DocumentList = _UnitOfWork.Document.GetAll().Where(u => u.ApplicationUserId == userId).ToList(); //to convert from IEnumerable object to List object to pass to the index page
+            // in order to return a list of all the documents
+            List<Document> DocumentList = _UnitOfWork.Document.GetAll().Where(u => u.ApplicationUserId == userId).ToList(); //to convert from IEnumerable object to List object to pass to the index page, for all the documents of the user that is in the page
 
-            var viewModel = new DocumentVM //as we will handle showing the documents and update new ones in the same place
+            var viewModel = new DocumentVM //as we will handle showing the documents and update new ones in the same place we will need a view model as we can't pass more than one model in the same page
             {
                 documents = DocumentList
             };
@@ -51,8 +52,64 @@ namespace MCD.Controllers
         }
 
         [HttpPost]
-        public IActionResult UploadDocument(DocumentVM model) //put here the input
+        public async Task<IActionResult> UploadDocument(DocumentVM model) //put here the input, it will be async in order to improve performance/ handling a lot of large documents and we don't want thread blocking   
         {
+            if (model.DocumentFile != null) // if there is a valid file
+            {
+                //to assign the user id 
+                var claimsIdentity = (ClaimsIdentity)User.Identity;
+                var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
+
+                string StoragePath = "C:\\Users\\xskyx\\source\\repos\\MCD\\MCD\\Storage\\";
+                string UserStorage = StoragePath + $"\\{userId}";
+                // create a new folder if the folder of the user does not exist, named with the id of the user
+                if (!Directory.Exists(UserStorage)) 
+                {
+                    Directory.CreateDirectory(UserStorage);
+                }
+
+                //so that we don't create a category when we have a document with a default type
+                Category DefaultCategory = _UnitOfWork.Category.Get(u => u.ApplicationUserId == userId && u.CategoryName == "---");
+                if (DefaultCategory == null) 
+                {
+                     DefaultCategory = new Category() { ApplicationUserId = userId, CategoryName = "---" };
+                }
+
+
+                //to save the document
+                Document document = new()
+                {
+                    ApplicationUserId = userId,
+                    Category = DefaultCategory,
+                    Title = model.DocumentFile.FileName,
+                    FileName = model.DocumentFile.FileName,
+                    FileType = model.DocumentFile.ContentType,
+                    UploadDate = DateTime.Now,
+                    UpdateDate = DateTime.Now,
+                    AITaskStatus = "---"
+                };
+
+                var FilePath = Path.Combine(UserStorage, document.FileName); //the path of the content of the file
+                FileStream stream = new FileStream(FilePath, FileMode.Create); //creating a new file place
+                using (stream)
+                {
+                    await model.DocumentFile.CopyToAsync(stream);
+                    await stream.FlushAsync(); //ensure that all the content is written inside the folder before closing the stream
+                }
+
+                _UnitOfWork.Document.Add(document);
+                _UnitOfWork.Save();
+
+                if (model.Summarize == true)
+                {
+                    //summarization logic 
+                }
+
+            }
+
+
+
+
             return RedirectToAction(nameof(Index));
         }
 
