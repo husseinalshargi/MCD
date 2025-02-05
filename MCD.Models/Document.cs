@@ -26,31 +26,30 @@ namespace MCD.Models
         public int CategoryId { get; set; }
         [ForeignKey("CategoryId")]
         [ValidateNever]
-        public required Category Category { get; set; }
+        public Category Category { get; set; }
 
-        [Required] //to be requierd in the data validation when entering the data
+         //to be requierd in the data validation when entering the data
         [StringLength(50, MinimumLength = 1)] // the length of the string should be in between 1-50
-        public required string Title { get; set; }
+        public string Title { get; set; }
 
-        [Required] //to be requierd in the data validation when entering the data
+         //to be requierd in the data validation when entering the data
         [StringLength(50, MinimumLength = 1)]
-        public required string FileName { get; set; } // to use in path (which will be in wwwroot)\ FileName.FileType
+        public string FileName { get; set; } // to use in path (which will be in wwwroot)\ FileName.FileType
 
-        [Required]
-        public required string FileType { get; set; } // PDF, JPG, txt, etc...
+        
+        public string FileType { get; set; } // PDF, JPG, txt, etc...
 
-        [Required]
+        
         [DataType(DataType.Date)] //to ensure that the type will be date
         [DisplayFormat(ApplyFormatInEditMode = true, DataFormatString = "{0:yyyy-MM-dd HH:mm:ss}")] //we need the zero to make it a placeholder to insert the datetime in the template
-        public required DateTime UploadDate { get; set; }
+        public DateTime UploadDate { get; set; }
 
-        [Required]
+        
         [DataType(DataType.Date)]
         [DisplayFormat(ApplyFormatInEditMode = true, DataFormatString = "{0:yyyy-MM-dd HH:mm:ss}")]
-        public required DateTime UpdateDate { get; set; } 
+        public DateTime UpdateDate { get; set; } 
 
-        [Required] 
-        public required string AITaskStatus { get; set; } // processing processed etc..
+        public string AITaskStatus { get; set; } // processing processed etc..
 
         // to make the relation one-to-many -> document can have more than one shared instance
         //to remove cascade problem 

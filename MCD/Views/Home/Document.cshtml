@@ -1,0 +1,51 @@
+﻿@using MCD.Models.ViewModels
+@model DocumentVM
+
+<style>
+    .popup, .overlay {
+        display: none;
+    }
+</style>
+
+<div class="text-center">
+
+    <button class="uploadDocument" onclick="openPopup()">Upload a document</button>
+
+    <table>
+        <tr>
+            <th>Document</th>
+            <th>Name</th>
+            <th>Extracted Text</th>
+            <th>Named Entities</th>
+            <th>Category/ies</th>
+            <th>Summarized Text</th>
+            <th>    </th>
+        </tr>
+    </table>
+
+
+    <div class="overlay" id="overlay" onclick="closePopup()"></div>
+    <form method="post" asp-action="UploadDocument">
+        <div class="popup" id="popup">
+            <p>The accepted types are: PDF and PNG</p>
+            <input type="file" asp-for="DocumentFile" id="newFile">
+            <label asp-for="DocumentFile">Choose a file</label>
+            <button type="button" onclick="closePopup()">Close</button>
+            <div class=uploadOptions>
+                <input type="checkbox" asp-for="Summarize" id="checkboxSummarize">
+                <label asp-for="Summarize">Summarize the extracted text</label>
+            </div>
+        </div>
+    </form>
+    <script>
+        function openPopup() {
+            document.getElementById("popup").style.display = "block";
+            document.getElementById("overlay").style.display = "block";
+        }
+
+        function closePopup() {
+            document.getElementById("popup").style.display = "none";
+            document.getElementById("overlay").style.display = "none";
+        }
+    </script>
+</div>
