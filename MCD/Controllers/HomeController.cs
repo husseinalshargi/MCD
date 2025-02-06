@@ -41,7 +41,7 @@ namespace MCD.Controllers
 
 
             // in order to return a list of all the documents
-            List<Document> DocumentList = _UnitOfWork.Document.GetAll().Where(u => u.ApplicationUserId == userId).ToList(); //to convert from IEnumerable object to List object to pass to the index page, for all the documents of the user that is in the page
+            List<Document> DocumentList = _UnitOfWork.Document.GetAll(includeProperties: "Category").Where(u => u.ApplicationUserId == userId).ToList(); //to convert from IEnumerable object to List object to pass to the index page, for all the documents of the user that is in the page
 
             var viewModel = new DocumentVM //as we will handle showing the documents and update new ones in the same place we will need a view model as we can't pass more than one model in the same page
             {
@@ -122,5 +122,23 @@ namespace MCD.Controllers
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
+
+
+        //to use datatables api for dealing with the tables in our page
+        #region API Calls
+        [HttpGet]
+        public IActionResult GetAll()
+        {
+            var claimsIdentity = (ClaimsIdentity)User.Identity;
+            var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
+
+            List<Document> DocumentList = _UnitOfWork.Document.GetAll(includeProperties: "Category").Where(u => u.ApplicationUserId == userId).ToList();
+                        
+            return Json(new {data =  DocumentList});
+        }
+
+        #endregion
+
+
     }
 }

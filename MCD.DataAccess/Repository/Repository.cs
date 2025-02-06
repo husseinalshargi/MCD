@@ -33,18 +33,40 @@ namespace MCD.DataAccess.Repository
             dbSet.Add(entity); // to add an instance
         }
 
-        public T Get(Expression<Func<T, bool>> filter)
+        public T Get(Expression<Func<T, bool>> filter, string? includeProperties = null)
         {
             IQueryable<T> query = dbSet; //return all the queries and make it a quarriable object as we are getting one of it
             query = query.Where(filter); // all the objects that are filtered will be here
+            if (!string.IsNullOrEmpty(includeProperties))
+            {
+                foreach (var includeprop in includeProperties
+                    .Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+                {
+                    query = query.Include(includeprop);
+                }
+            }
             return query.FirstOrDefault(); // first instance in the filter
 
         }
 
-        public IEnumerable<T> GetAll()
+        public IEnumerable<T> GetAll(Expression<Func<T, bool>>? filter, string? includeProperties = null)
         {
             IQueryable<T> query = dbSet;
-            return query.ToList(); //return all without the filter
+            if (filter != null) //if there is a lambda function 
+            {
+                query = query.Where(filter); //to search using the filter (lambda function)
+            }
+
+            if (!string.IsNullOrEmpty(includeProperties)) // a property that are in another table but linked using foreign key
+            {
+                foreach (var includeprop in includeProperties
+                    .Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+                {
+                    query = query.Include(includeprop);
+                }
+            }
+
+            return query.ToList(); 
         }
 
         public void Remove(T entity)
