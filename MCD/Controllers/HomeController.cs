@@ -12,6 +12,7 @@ namespace MCD.Controllers
 {
     public class HomeController : Controller
     {
+        private readonly string _StoragePath = "C:\\Users\\xskyx\\source\\repos\\MCD\\MCD\\Storage\\";
         private readonly ILogger<HomeController> _logger;
         private readonly IUnitOfWork _UnitOfWork;
         [BindProperty]
@@ -136,9 +137,26 @@ namespace MCD.Controllers
                         
             return Json(new {data =  DocumentList});
         }
+        [HttpGet]
+        public IActionResult GetDocument(string userId, string fileName, string fileType)
+        {
+            //to determine whether the user can access this document or not
+            var claimsIdentity = (ClaimsIdentity)User.Identity;
+            var currentUserId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value; //to get the id of the current requesting user
+            //here it will compare if this is the correct user or not
+            if (currentUserId != userId)
+            {
+                return RedirectToAction(nameof(Error));
+            }
+
+            var filePath = Path.Combine(_StoragePath, userId, fileName); // the path of the document
+            
+            return PhysicalFile(filePath, fileType ); // so that we return it as IFileResult obj (will have the content)
+        }
+
 
         #endregion
 
 
     }
-}
+    }
