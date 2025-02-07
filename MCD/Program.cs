@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 using MCD.DataAccess.Repository.IRepository;
 using MCD.DataAccess.Repository;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,6 +23,18 @@ builder.Services.AddDbContext<ApplicationDbContext>(options=>
 //also don't forget to change all identityuser to applicationuser -> in all the identity pages
 //to add the roles also you should make the function addidentity rhather than addefaultidentity
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>().AddEntityFrameworkStores<ApplicationDbContext>().AddDefaultTokenProviders(); //to add more columns to the user table you should extend IdentityUser and replace the one in here
+
+//in order to add google authentication:
+builder.Services.AddAuthentication().AddCookie().AddGoogle(option =>
+{
+    var GoogleAuth = builder.Configuration.GetSection("Authentication:Google"); //in order to get it from app settings
+    option.ClientId = GoogleAuth["client_id"];
+    option.ClientSecret = GoogleAuth["client_secret"];
+    option.CallbackPath = "/signin-google";
+});
+
+
+
 
 builder.Services.AddRazorPages(); //so that it handles razor pages where there is only area-page
 //such as in authentication
