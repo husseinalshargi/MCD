@@ -33,7 +33,8 @@ builder.Services.AddAuthentication().AddCookie().AddGoogle(option =>
     option.CallbackPath = "/signin-google";
 });
 
-
+//to add google driva service
+builder.Services.AddSingleton<GoogleDriveService>();
 
 
 builder.Services.AddRazorPages(); //so that it handles razor pages where there is only area-page
