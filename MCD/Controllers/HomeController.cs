@@ -12,6 +12,7 @@ namespace MCD.Controllers
 {
     public class HomeController : Controller
     {
+        private readonly string _StoragePath = "C:\\Users\\xskyx\\source\\repos\\MCD\\MCD\\Storage\\";
         private readonly ILogger<HomeController> _logger;
         private readonly IUnitOfWork _UnitOfWork;
         [BindProperty]
@@ -41,7 +42,7 @@ namespace MCD.Controllers
 
 
             // in order to return a list of all the documents
-            List<Document> DocumentList = _UnitOfWork.Document.GetAll().Where(u => u.ApplicationUserId == userId).ToList(); //to convert from IEnumerable object to List object to pass to the index page, for all the documents of the user that is in the page
+            List<Document> DocumentList = _UnitOfWork.Document.GetAll(includeProperties: "Category").Where(u => u.ApplicationUserId == userId).ToList(); //to convert from IEnumerable object to List object to pass to the index page, for all the documents of the user that is in the page
 
             var viewModel = new DocumentVM //as we will handle showing the documents and update new ones in the same place we will need a view model as we can't pass more than one model in the same page
             {
@@ -122,5 +123,40 @@ namespace MCD.Controllers
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
+
+
+        //to use datatables api for dealing with the tables in our page
+        #region API Calls
+        [HttpGet]
+        public IActionResult GetAll()
+        {
+            var claimsIdentity = (ClaimsIdentity)User.Identity;
+            var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
+
+            List<Document> DocumentList = _UnitOfWork.Document.GetAll(includeProperties: "Category").Where(u => u.ApplicationUserId == userId).ToList();
+                        
+            return Json(new {data =  DocumentList});
+        }
+        [HttpGet]
+        public IActionResult GetDocument(string userId, string fileName, string fileType)
+        {
+            //to determine whether the user can access this document or not
+            var claimsIdentity = (ClaimsIdentity)User.Identity;
+            var currentUserId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value; //to get the id of the current requesting user
+            //here it will compare if this is the correct user or not
+            if (currentUserId != userId)
+            {
+                return RedirectToAction(nameof(Error));
+            }
+
+            var filePath = Path.Combine(_StoragePath, userId, fileName); // the path of the document
+            
+            return PhysicalFile(filePath, fileType ); // so that we return it as IFileResult obj (will have the content)
+        }
+
+
+        #endregion
+
+
     }
-}
+    }

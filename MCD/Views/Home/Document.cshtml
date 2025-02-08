@@ -11,15 +11,18 @@
 
     <button class="uploadDocument" onclick="openPopup()">Upload a document</button>
 
-    <table>
-        <tr>
-            <th>Document</th>
-            <th>Name</th>
-            <th>Extracted Text</th>
-            <th>Named Entities</th>
-            <th>Category/ies</th>
-            <th>Summarized Text</th>
-        </tr>
+    <table id="tblData" class="table table-bordered table-striped" style="width:100%">
+        <thead>
+            <tr>
+                <th>Document</th>
+                <th>Title</th>
+                <th>File Name</th>
+                <th>Upload Date</th>
+                <th>Update Date</th>
+                <th>Category</th>
+                <th>More Info</th>
+            </tr>
+        </thead>
     </table>
 
 
@@ -49,3 +52,11 @@
         }
     </script>
 </div>
+
+
+
+
+
+@section Scripts{
+    <script src="~/js/Document.js"></script>
+}
