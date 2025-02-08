@@ -48,7 +48,7 @@ function loadDataTable() {
     });
 }
 
-function openDocument(userId, fileName, fileType) { // a function to call inside render for getting html in the table
+function openDocument(userId, fileName) { // a function to call inside render for getting html in the table
     $.ajax({
         url: `/home/GetDocument?userId=${userId}&fileName=${fileName}`,
         type: 'GET',
@@ -60,6 +60,7 @@ function openDocument(userId, fileName, fileType) { // a function to call inside
             }
         },
         error: function () {
+            console.log("AJAX Error:", xhr.responseText);
             alert("Error: Could not open the document.");
         }
     });

@@ -65,14 +65,6 @@ namespace MCD.Controllers
                 var claimsIdentity = (ClaimsIdentity)User.Identity;
                 var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
 
-                //to store it locally
-                //string StoragePath = "C:\\Users\\xskyx\\source\\repos\\MCD\\MCD\\Storage\\";
-                //string UserStorage = StoragePath + $"\\{userId}";
-                // create a new folder if the folder of the user does not exist, named with the id of the user
-                //if (!Directory.Exists(UserStorage)) 
-                //{
-                //    Directory.CreateDirectory(UserStorage);
-                //}
 
                 //to get the file in IFormFile obj
                 if (model.DocumentFile == null)
@@ -86,37 +78,54 @@ namespace MCD.Controllers
                 //use the google drive class from the utilities
                 var DriveService = await _GoogleDriveService.GetDriveService(); // await because it is defined like this 
 
-                //check if there is a file in google drive called {userid} or not (create one if not)
-                var ListRequest = DriveService.Files.List(); //to get all the folders
-                ListRequest.Q = $"name = '{userId}' and mimeType = 'application/vnd.google-apps.folder'"; // Searching for the parent folder by name type: that it is a folder
-                ListRequest.Fields = "files(id, name)"; //to get the file id and name
-                var result = ListRequest.Execute(); //the search happens
+                //get mcd folder in order to save it
+                var folderRequest = DriveService.Files.List();
+                folderRequest.Q = "name = 'MCD' and mimeType = 'application/vnd.google-apps.folder' and trashed = false";
+                folderRequest.Fields = "files(id, name)";
+                var folderResponse = await folderRequest.ExecuteAsync();
+                var mcdFolder = folderResponse.Files.FirstOrDefault();
+
+                if (mcdFolder == null)
+                {
+                    return NotFound("MCD folder not found.");
+                }
+                string mcdFolderId = mcdFolder.Id;
+
+
+
+                // get  User's Folder ID inside MCD
+                var userFolderRequest = DriveService.Files.List();
+                userFolderRequest.Q = $"name = '{userId}' and mimeType = 'application/vnd.google-apps.folder' and '{mcdFolderId}' in parents and trashed = false";
+                userFolderRequest.Fields = "files(id, name)";
+                var userFolderResponse = await userFolderRequest.ExecuteAsync();
+                string userFolderId = null;
 
                 //here is the logic of searching for a file, if it wasn't here create one
                 string parentFolderId = null; // to put in the parent name (folder)
-                if (result.Files.Count == 0) // if not found
+                if (userFolderResponse.Files.Count == 0) // if not found
                 {
                     var folderMetaData = new Google.Apis.Drive.v3.Data.File()
                     {
                         Name = userId, // Folder name
+                        Parents = new List<string> { mcdFolderId },
                         MimeType = "application/vnd.google-apps.folder",
                     };
 
                     var createRequest = DriveService.Files.Create(folderMetaData);
                     createRequest.Fields = "id";
                     var folder = createRequest.Execute();
-                    parentFolderId = folder.Id; // Use the created folder's ID as the parent
+                    userFolderId = folder.Id; // Use the created folder's ID as the parent
                 }
                 else
                 {
-                    parentFolderId = result.Files[0].Id; // Use the existing folder's id as the parent
+                    userFolderId = userFolderResponse.Files[0].Id; // Use the existing folder's id as the parent
                 }
 
 
                 var FileMetaData = new Google.Apis.Drive.v3.Data.File()
                 {
                     Name = model.DocumentFile.FileName,
-                    Parents = new List<string> { parentFolderId }, //the name of the folder in the drive
+                    Parents = new List<string> { userFolderId }, //the name of the folder in the drive
                     Description = $"MCD Documents folder uploaded by: {userEmail}"
 
                 }; //here i will place the file details that will be uploaded in google drive
@@ -207,7 +216,7 @@ namespace MCD.Controllers
             //here it will compare if this is the correct user or not
             if (currentUserId != userId)
             {
-                return RedirectToAction(nameof(Error));
+                return Unauthorized("Access denied.");
             }
 
 
@@ -215,7 +224,7 @@ namespace MCD.Controllers
             var driveService = await _GoogleDriveService.GetDriveService(); // to connect to google drive
             //to search for the document
             var request = driveService.Files.List(); //list of all the files
-            request.Q = $"name = '{fileName}' and '{userId}' in owners";
+            request.Q = $"name = '{fileName}' and '{userId}' in parents and trashed = false";
             request.Fields = "files(id, name, webViewLink)"; // get these values
 
             var response = await request.ExecuteAsync();
