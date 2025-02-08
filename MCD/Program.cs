@@ -33,7 +33,7 @@ builder.Services.AddAuthentication().AddCookie().AddGoogle(option =>
     option.CallbackPath = "/signin-google";
 });
 
-//to add google driva service
+//to add google drive service
 builder.Services.AddSingleton<GoogleDriveService>();
 
 

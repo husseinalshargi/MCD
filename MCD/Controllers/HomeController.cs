@@ -1,11 +1,13 @@
 using System.Diagnostics;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Google.Apis.Drive.v3;
 using MCD.DataAccess.Data;
 using MCD.DataAccess.Repository;
 using MCD.DataAccess.Repository.IRepository;
 using MCD.Models;
 using MCD.Models.ViewModels;
+using MCD.Utility;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MCD.Controllers
@@ -13,15 +15,17 @@ namespace MCD.Controllers
     public class HomeController : Controller
     {
         private readonly string _StoragePath = "C:\\Users\\xskyx\\source\\repos\\MCD\\MCD\\Storage\\";
+        private readonly GoogleDriveService _GoogleDriveService;
         private readonly ILogger<HomeController> _logger;
         private readonly IUnitOfWork _UnitOfWork;
         [BindProperty]
         public DocumentVM DocumentVM { get; set; }
 
-        public HomeController(ILogger<HomeController> logger, IUnitOfWork unitOfWork)
+        public HomeController(ILogger<HomeController> logger, IUnitOfWork unitOfWork, GoogleDriveService googleDriveService)
         {
             _logger = logger;
             _UnitOfWork = unitOfWork;
+            _GoogleDriveService = googleDriveService;
         }
 
         public IActionResult Index()
@@ -61,12 +65,75 @@ namespace MCD.Controllers
                 var claimsIdentity = (ClaimsIdentity)User.Identity;
                 var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
 
-                string StoragePath = "C:\\Users\\xskyx\\source\\repos\\MCD\\MCD\\Storage\\";
-                string UserStorage = StoragePath + $"\\{userId}";
+                //to store it locally
+                //string StoragePath = "C:\\Users\\xskyx\\source\\repos\\MCD\\MCD\\Storage\\";
+                //string UserStorage = StoragePath + $"\\{userId}";
                 // create a new folder if the folder of the user does not exist, named with the id of the user
-                if (!Directory.Exists(UserStorage)) 
+                //if (!Directory.Exists(UserStorage)) 
+                //{
+                //    Directory.CreateDirectory(UserStorage);
+                //}
+
+                //to get the file in IFormFile obj
+                if (model.DocumentFile == null)
                 {
-                    Directory.CreateDirectory(UserStorage);
+                    return BadRequest("No file selected."); //as the user did not upload a file
+                }
+                // in order to write it in the description
+                string userEmail = _UnitOfWork.ApplicationUser.Get(u=>u.Id == userId).Email; // to get the user email
+
+                
+                //use the google drive class from the utilities
+                var DriveService = await _GoogleDriveService.GetDriveService(); // await because it is defined like this 
+
+                //check if there is a file in google drive called {userid} or not (create one if not)
+                var ListRequest = DriveService.Files.List(); //to get all the folders
+                ListRequest.Q = $"name = '{userId}' and mimeType = 'application/vnd.google-apps.folder'"; // Searching for the parent folder by name type: that it is a folder
+                ListRequest.Fields = "files(id, name)"; //to get the file id and name
+                var result = ListRequest.Execute(); //the search happens
+
+                //here is the logic of searching for a file, if it wasn't here create one
+                string parentFolderId = null; // to put in the parent name (folder)
+                if (result.Files.Count == 0) // if not found
+                {
+                    var folderMetaData = new Google.Apis.Drive.v3.Data.File()
+                    {
+                        Name = userId, // Folder name
+                        MimeType = "application/vnd.google-apps.folder",
+                    };
+
+                    var createRequest = DriveService.Files.Create(folderMetaData);
+                    createRequest.Fields = "id";
+                    var folder = createRequest.Execute();
+                    parentFolderId = folder.Id; // Use the created folder's ID as the parent
+                }
+                else
+                {
+                    parentFolderId = result.Files[0].Id; // Use the existing folder's id as the parent
+                }
+
+
+                var FileMetaData = new Google.Apis.Drive.v3.Data.File()
+                {
+                    Name = model.DocumentFile.FileName,
+                    Parents = new List<string> { parentFolderId }, //the name of the folder in the drive
+                    Description = $"MCD Documents folder uploaded by: {userEmail}"
+
+                }; //here i will place the file details that will be uploaded in google drive
+
+                //uploading the file logic
+                using (var stream = model.DocumentFile.OpenReadStream())
+                {
+                    var request = DriveService.Files.Create(FileMetaData, stream, model.DocumentFile.ContentType);
+                    request.Fields = "id, webViewLink"; //  file id and link
+                    var uploadedFile = await request.UploadAsync();
+
+                    if (uploadedFile.Status != Google.Apis.Upload.UploadStatus.Completed) //if there is an error with the file uploading
+                    {
+                        return StatusCode(500, "Error uploading file to Google Drive.");
+                    }
+                    // Get uploaded file details
+                    var fileData = request.ResponseBody;
                 }
 
                 //so that we don't create a category when we have a document with a default type
@@ -77,7 +144,7 @@ namespace MCD.Controllers
                 }
 
 
-                //to save the document
+                //to save the document details in the db
                 Document document = new()
                 {
                     ApplicationUserId = userId,
@@ -90,15 +157,9 @@ namespace MCD.Controllers
                     AITaskStatus = "---"
                 };
 
-                var FilePath = Path.Combine(UserStorage, document.FileName); //the path of the content of the file
-                FileStream stream = new FileStream(FilePath, FileMode.Create); //creating a new file place
-                using (stream)
-                {
-                    await model.DocumentFile.CopyToAsync(stream);
-                    await stream.FlushAsync(); //ensure that all the content is written inside the folder before closing the stream
-                }
+                
 
-                _UnitOfWork.Document.Add(document);
+                _UnitOfWork.Document.Add(document); //add it to the db
                 _UnitOfWork.Save();
 
                 if (model.Summarize == true)
@@ -138,7 +199,7 @@ namespace MCD.Controllers
             return Json(new {data =  DocumentList});
         }
         [HttpGet]
-        public IActionResult GetDocument(string userId, string fileName, string fileType)
+        public async Task<IActionResult> GetDocument(string userId, string fileName)
         {
             //to determine whether the user can access this document or not
             var claimsIdentity = (ClaimsIdentity)User.Identity;
@@ -149,9 +210,33 @@ namespace MCD.Controllers
                 return RedirectToAction(nameof(Error));
             }
 
-            var filePath = Path.Combine(_StoragePath, userId, fileName); // the path of the document
+
+
+            var driveService = await _GoogleDriveService.GetDriveService(); // to connect to google drive
+            //to search for the document
+            var request = driveService.Files.List(); //list of all the files
+            request.Q = $"name = '{fileName}' and '{userId}' in owners";
+            request.Fields = "files(id, name, webViewLink)"; // get these values
+
+            var response = await request.ExecuteAsync();
+            var file = response.Files.FirstOrDefault(); // get the first matching file
+
+            if (file == null)
+            {
+                return NotFound("File not found in Google Drive.");
+            }
+
+            //var filePath = Path.Combine(_StoragePath, userId, fileName); // the path of the document
             
-            return PhysicalFile(filePath, fileType ); // so that we return it as IFileResult obj (will have the content)
+            // to download the file using its ID
+            //var getRequest = driveService.Files.Get(file.Id);
+            //var stream = new MemoryStream();
+            //await getRequest.DownloadAsync(stream);
+            //stream.Position = 0;
+            //return File(stream, file.MimeType); // so that we return it as to download
+
+            return Json(new {fileUrl = file.WebViewLink}); // in order to see it without needing to download
+
         }
 
 
