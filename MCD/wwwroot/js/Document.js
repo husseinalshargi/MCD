@@ -59,7 +59,7 @@ function openDocument(userId, fileName) { // a function to call inside render fo
                 alert("Error: Unable to fetch the document.");
             }
         },
-        error: function () {
+        error: function (xhr) {
             console.log("AJAX Error:", xhr.responseText);
             alert("Error: Could not open the document.");
         }

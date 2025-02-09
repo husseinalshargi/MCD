@@ -222,21 +222,42 @@ namespace MCD.Controllers
 
 
             var driveService = await _GoogleDriveService.GetDriveService(); // to connect to google drive
-            //to search for the document
+            //to enter the app folder in google drive
             var request = driveService.Files.List(); //list of all the files
-            request.Q = $"name = '{fileName}' and '{userId}' in parents and trashed = false";
-            request.Fields = "files(id, name, webViewLink)"; // get these values
+            request.Q = $"name = 'MCD' and mimeType = 'application/vnd.google-apps.folder' and trashed = false";// search for a folder with the name of MCD
+            request.Fields = "files(id)"; // get MCd folder Id
+            var response = await request.ExecuteAsync(); 
+            var MCDFolder = response.Files.FirstOrDefault(); // get the first matching folder which is the target
+            string mcdFolderId = MCDFolder.Id; //to get the value of the id
 
-            var response = await request.ExecuteAsync();
-            var file = response.Files.FirstOrDefault(); // get the first matching file
+            // after that we can search for the user folder inside MCD folder having the user id as its name
+
+            var userFolderRequest = driveService.Files.List();
+            userFolderRequest.Q = $"name = '{userId}' and mimeType = 'application/vnd.google-apps.folder' and '{mcdFolderId}' in parents and trashed = false";
+            userFolderRequest.Fields = "files(id)";
+            var userFolderResponse = await userFolderRequest.ExecuteAsync();
+            var userFolder = userFolderResponse.Files.FirstOrDefault();
+
+            if (userFolder == null)
+            {
+                return NotFound("User folder not found in MCD.");
+            }
+            string UserFolderId = userFolder.Id;
+
+            //here is the actual searching of the user requested file 
+            var fileRequest = driveService.Files.List();
+            fileRequest.Q = $"name = '{fileName}' and '{UserFolderId}' in parents and trashed = false";
+            fileRequest.Fields = "files(id, name, webViewLink)"; //webViewLink in order to see it without needing for any downloading
+            var fileResponse = await fileRequest.ExecuteAsync();
+            var file = fileResponse.Files.FirstOrDefault();
 
             if (file == null)
             {
-                return NotFound("File not found in Google Drive.");
+                return NotFound("File not found in the user's folder.");
             }
 
             //var filePath = Path.Combine(_StoragePath, userId, fileName); // the path of the document
-            
+
             // to download the file using its ID
             //var getRequest = driveService.Files.Get(file.Id);
             //var stream = new MemoryStream();
