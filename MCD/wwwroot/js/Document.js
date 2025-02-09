@@ -13,7 +13,7 @@ function loadDataTable() {
                     //row to get other data from columns
                     let userId = row.applicationUserId; // in order to get the user id to get the path
                     let fileType = row.fileType;
-                    return `<button onclick="openDocument('${userId}', '${data}', '${fileType}')" class="btn btn-primary">
+                    return `<button onclick="openDocument('${userId}', '${data}')" class="btn btn-primary">
                             <i class="bi bi-file-earmark"></i> Open Document
                         </button>`;
                 },
@@ -48,7 +48,20 @@ function loadDataTable() {
     });
 }
 
-function openDocument(userId, fileName, fileType) { // a function to call inside render for getting html in the table
-    let fileUrl = `/home/GetDocument?userId=${encodeURIComponent(userId)}&fileName=${encodeURIComponent(fileName)}&fileType=${encodeURIComponent(fileType)}`;
-    window.open(fileUrl, '_blank'); // Open in new tab -> _self to open in the same page
+function openDocument(userId, fileName) { // a function to call inside render for getting html in the table
+    $.ajax({
+        url: `/home/GetDocument?userId=${userId}&fileName=${fileName}`,
+        type: 'GET',
+        success: function (response) {
+            if (response && response.fileUrl) {
+                window.open(response.fileUrl, '_blank'); // Open in new tab -> _self to open in the same page
+            } else {
+                alert("Error: Unable to fetch the document.");
+            }
+        },
+        error: function () {
+            console.log("AJAX Error:", xhr.responseText);
+            alert("Error: Could not open the document.");
+        }
+    });
 }
