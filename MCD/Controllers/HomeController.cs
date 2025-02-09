@@ -33,6 +33,25 @@ namespace MCD.Controllers
             return View();
         }
 
+        public IActionResult MoreInfo()
+        {
+            return View();
+        }
+
+        public IActionResult SharedDocuments()
+        {
+            return View();
+        }        
+
+        public IActionResult UserManagement()
+        {
+            return View();
+        }      
+
+        public IActionResult AuditLogs()
+        {
+            return View();
+        }      
         public IActionResult Document()
         {
             if (!User.Identity.IsAuthenticated) // in order to avoid null errors in the next step we will check first if the user is authenticated 

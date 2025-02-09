@@ -1,0 +1,17 @@
+thead {
+    display: table-header-group;
+    margin-bottom: 40px;
+    text-align: center;
+}
+
+tbody {
+    text-align: center;
+}
+.spacer-row td {
+    height: 15px; /* Adjust spacing */
+    border: none; /* Remove unwanted borders */
+}
+
+.sumPart {
+    padding-top: 20px;
+}

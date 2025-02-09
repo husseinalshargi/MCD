@@ -1,0 +1,10 @@
+table {
+    width: 100%; /* Table takes full width of the container */
+    border-collapse: collapse; /* Removes extra spacing between borders */
+}
+
+th, td {
+    border: 1px solid black; /* Adds borders to cells */
+    padding: 10px;
+    text-align: center;
+}
