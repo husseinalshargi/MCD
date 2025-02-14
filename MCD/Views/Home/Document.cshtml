@@ -30,15 +30,25 @@
     <form method="post" asp-action="UploadDocument" enctype="multipart/form-data">
         <div class="popup" id="popup">
             <p>The accepted types are: PDF and PNG</p>
-            <input type="file" asp-for="DocumentFile" id="newFile">
-            <label asp-for="DocumentFile">Choose a file</label>
+            
+            <div id="dropArea" class="drop-area">
+                <p>Drag & Drop files here or click to select</p>
+                <input type="file" asp-for="DocumentFile" id="newFile" multiple hidden>
+            </div>
+            
+            <label asp-for="DocumentFile">Choose files</label>
             <button type="button" onclick="closePopup()">Close</button>
-            <div class=uploadOptions>
+            
+            <div class="uploadOptions">
                 <input type="checkbox" asp-for="Summarize" id="checkboxSummarize">
                 <label asp-for="Summarize">Summarize the extracted text</label>
             </div>
+            
             <button type="submit">Upload to Storage</button>
+
+            <div id="fileList" class="file-list"></div>
         </div>
+
     </form>
     <script>
         function openPopup() {
@@ -49,6 +59,44 @@
         function closePopup() {
             document.getElementById("popup").style.display = "none";
             document.getElementById("overlay").style.display = "none";
+        }
+        const dropArea = document.getElementById("dropArea");
+        const fileInput = document.getElementById("newFile");
+        const fileList = document.getElementById("fileList");
+
+        dropArea.addEventListener("click", () => fileInput.click());
+        
+        dropArea.addEventListener("dragover", (event) => {
+            event.preventDefault();
+            dropArea.classList.add("highlight");
+        });
+
+        dropArea.addEventListener("dragleave", () => {
+            dropArea.classList.remove("highlight");
+        });
+
+        dropArea.addEventListener("drop", (event) => {
+            event.preventDefault();
+            dropArea.classList.remove("highlight");
+
+            if (event.dataTransfer.files.length > 0) {
+                fileInput.files = event.dataTransfer.files;
+                displayFiles(event.dataTransfer.files);
+            }
+        });
+
+        fileInput.addEventListener("change", (event) => {
+            displayFiles(event.target.files);
+        });
+
+        function displayFiles(files) {
+            fileList.innerHTML = "";
+            Array.from(files).forEach(file => {
+                const fileItem = document.createElement("div");
+                fileItem.classList.add("file-item");
+                fileItem.textContent = file.name;
+                fileList.appendChild(fileItem);
+            });
         }
     </script>
 </div>
