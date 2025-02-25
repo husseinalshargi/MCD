@@ -14,7 +14,6 @@ namespace MCD.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly string _StoragePath = "C:\\Users\\xskyx\\source\\repos\\MCD\\MCD\\Storage\\";
         private readonly GoogleDriveService _GoogleDriveService;
         private readonly ILogger<HomeController> _logger;
         private readonly IUnitOfWork _UnitOfWork;
@@ -33,10 +32,7 @@ namespace MCD.Controllers
             return View();
         }
 
-        public IActionResult MoreInfo()
-        {
-            return View();
-        }
+
 
         public IActionResult SharedDocuments()
         {

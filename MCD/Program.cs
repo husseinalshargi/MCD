@@ -31,6 +31,10 @@ builder.Services.AddAuthentication().AddCookie().AddGoogle(option =>
     option.ClientId = GoogleAuth["client_id"];
     option.ClientSecret = GoogleAuth["client_secret"];
     option.CallbackPath = "/signin-google";
+
+    // so that it refreshes the token each time it is expired
+    option.AccessType = "offline";
+    option.SaveTokens = true;
 });
 
 //to add google drive service
