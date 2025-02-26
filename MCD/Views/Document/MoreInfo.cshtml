@@ -1,4 +1,5 @@
-@model Document
+@using MCD.Models.ViewModels
+@model AddSharedVM
 <h1>More info about the document</h1>
 
 <table id="moreInfoTable" class="moreInfoTable" style="width:100%">
@@ -32,10 +33,39 @@
             </tr>
         </tbody>
 </table>
+<form method="post" asp-action="UploadSharedDocument" enctype="multipart/form-data">
+    <hr class="mb-4">
+    <table id="addShared" class="addShared" style="width:100%">
+        <thead id="addSharedHead">
+            <tr>
+                <th>User Email to Share document</th>
+                <th>Share</th>
+            </tr>
+        </thead>
+        <tbody id="addShareBody">
+            <tr class="spacer-row"><td colspan="3"></td></tr>
+            <tr>
+                <td>
+                    <label asp-for=sharedDocument.ApplicationUser.Email class="ms-2"></label>
+                    <input asp-for=sharedDocument.ApplicationUser.Email class="form-control border-0 shadow" />
+                    <span asp-validation-for="sharedDocument.ApplicationUser.Email" class="text-danger"></span>
+                </td>
+                <td>
+                    <!-- Submit button to post the form -->
+                    <button type="submit" class="btn btn-secondary">
+                        <i class="bi bi-share-fill"></i> - Share to Other User
+                    </button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</form>
 <div class="text-center fixed-bottom-center" style="margin-bottom: 60px;">
     <!-- to place the back button always down in the center in top of the bottom header-->
     <a href="/home/document" class="btn btn-info mx-2"> <i class="bi bi-arrow-return-left"></i> Back </a>
 </div>
+
+<hr class="mb-4">
 
 <div class="sumPart">
     <h2>Summarization</h2>

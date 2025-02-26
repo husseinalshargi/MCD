@@ -36,7 +36,18 @@ namespace MCD.Controllers
 
         public IActionResult SharedDocuments()
         {
-            return View();
+            if (!User.Identity.IsAuthenticated) // in order to avoid null errors in the next step we will check first if the user is authenticated 
+            {
+                return RedirectToAction("Privacy");
+            }
+
+            //in order to claim the user id (the one that enters the page)
+            var claimsIdentity = (ClaimsIdentity)User.Identity;
+            var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
+
+            List<SharedDocument> SharedDocumentList = _UnitOfWork.SharedDocument.GetAll(includeProperties: "Document").Where(u => u.ApplicationUserId == userId).ToList();
+
+            return View(SharedDocumentList);
         }        
 
         public IActionResult UserManagement()
@@ -283,7 +294,17 @@ namespace MCD.Controllers
             return Json(new {fileUrl = file.WebViewLink}); // in order to see it without needing to download
 
         }
+        
+        [HttpGet]
+        public IActionResult GetAllSharedDocuments() //to get all shared documents in datatables API
+        {
+            var claimsIdentity = (ClaimsIdentity)User.Identity;
+            var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
 
+            List<SharedDocument> SharedDocumentList = _UnitOfWork.SharedDocument.GetAll(includeProperties: "Document").Where(u => u.ApplicationUserId == userId).ToList();
+
+            return Json(new { data = SharedDocumentList });
+        }
 
         #endregion
 

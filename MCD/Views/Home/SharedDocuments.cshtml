@@ -1,18 +1,20 @@
-<table id="sharedDocsTable" class="table table-bordered table-striped" style="width:100%">
-    <thead>
-        <tr>
-            <th>Document</th>
-            <th>Shared By</th>
-            <th>Access Level</th>
-            <th>Access Control</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr>
-            <td>Document</td>
-            <td>john</td>
-            <td>public</td>
-            <td><input type="button" id="sharedDocumentsPermission" value="Change permission"></td>
-        </tr>
-    </tbody>
-</table>
+@model List<SharedDocument>
+<div class="text-center">
+    <table id="sharedDocsTable" class="table table-bordered table-striped" style="width:100%">
+        <thead>
+            <tr>
+                <th>Document</th>
+                <th>Document Name</th>
+                <th>Shared To</th>
+                <th>Shared Date</th>
+                <th>Access Level</th>
+                <th>Remove Accesses</th>
+            </tr>
+        </thead>
+    </table>
+</div>
+
+
+@section Scripts {
+    <script src="~/js/SharedDocument.js"></script>
+}

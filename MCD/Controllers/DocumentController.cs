@@ -1,5 +1,6 @@
 ﻿using MCD.DataAccess.Repository.IRepository;
 using MCD.Models;
+using MCD.Models.ViewModels;
 using MCD.Utility;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -27,7 +28,13 @@ namespace MCD.Controllers
             //in order to return the content of the file we should first retrieve the file it self
             Document document = _UnitOfWork.Document.Get(u => u.Id == id); //get the document with the document id that are passed in the documents page (more info)
 
-            return View(document);
+            //create view model in order to display document details also create a shared document obj
+            var viewModel = new AddSharedVM //as we will handle showing the documents and update new ones in the same place we will need a view model as we can't pass more than one model in the same page
+            {
+                document = document
+            }; //the shared document waits to be created using the form in html page (view)
+
+            return View(viewModel);
         }
     }
 }

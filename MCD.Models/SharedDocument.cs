@@ -19,6 +19,8 @@ namespace MCD.Models
         [ValidateNever]
         public ApplicationUser ApplicationUser { get; set; }
 
+        public string SharedToId { get; set; }
+
         [ValidateNever]
         public int DocumentId { get; set; }
         [ValidateNever]
