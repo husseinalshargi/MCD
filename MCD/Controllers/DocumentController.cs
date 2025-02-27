@@ -3,6 +3,7 @@ using MCD.Models;
 using MCD.Models.ViewModels;
 using MCD.Utility;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
 
 namespace MCD.Controllers
@@ -18,7 +19,7 @@ namespace MCD.Controllers
         {
             if (!User.Identity.IsAuthenticated) // in order to avoid null errors in the next step we will check first if the user is authenticated 
             {
-                return RedirectToAction("Privacy");
+                return RedirectToAction("Privacy", "Home");
             }
 
             //in order to claim the user id (the one that enters the page)
@@ -28,13 +29,60 @@ namespace MCD.Controllers
             //in order to return the content of the file we should first retrieve the file it self
             Document document = _UnitOfWork.Document.Get(u => u.Id == id); //get the document with the document id that are passed in the documents page (more info)
 
-            //create view model in order to display document details also create a shared document obj
-            var viewModel = new AddSharedVM //as we will handle showing the documents and update new ones in the same place we will need a view model as we can't pass more than one model in the same page
-            {
-                document = document
-            }; //the shared document waits to be created using the form in html page (view)
-
-            return View(viewModel);
+            return View(document);
         }
+
+        //share the document action
+        [HttpPost]
+        public IActionResult UploadSharedDocument(int DocumentId, string SharedToEmail) //shared id -> user email
+        {
+            //first thing make sure that the user are authenticated
+            if (!User.Identity.IsAuthenticated)
+            {
+                return RedirectToAction("Privacy", "Home"); //home controller
+            }
+            //in order to claim the user id (the one that enters the page)
+            var claimsIdentity = (ClaimsIdentity)User.Identity;
+            var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
+
+            if (string.IsNullOrEmpty(SharedToEmail))
+            {
+                TempData["ErrorMessage"] = "User with this email does not exist."; //there aren't a user with this email
+                return RedirectToAction(nameof(MoreInfo)); //return the same view
+            }
+
+
+            var SharedToUser = _UnitOfWork.ApplicationUser.Get(u => u.Email.ToLower() == SharedToEmail.ToLower());
+            if(SharedToUser == null)
+            {
+                TempData["ErrorMessage"] = "User with this email does not exist.";
+                return RedirectToAction(nameof(MoreInfo));
+            }
+
+            // if the document is already shared with the same user
+            var existingSharedDocument = _UnitOfWork.SharedDocument.Get(u => u.DocumentId == DocumentId && u.SharedFromId == SharedToUser.Id);
+            if (existingSharedDocument != null)
+            {
+                TempData["ErrorMessage"] = "This document is already shared with this user.";
+                return RedirectToAction("SharedDocuments", "Home");
+            }
+
+
+
+            _UnitOfWork.SharedDocument.Add(new SharedDocument()
+            {
+                SharedToEmail= SharedToUser.Email.ToLower(),
+                SharedFromId =userId,
+                DocumentId=DocumentId,
+                SharedAt=DateTime.Now
+            });
+            _UnitOfWork.Save(); //save changes after adding the shared doc
+
+            TempData["SuccessMessage"] = "Document shared successfully!";
+
+            return RedirectToAction("SharedDocuments", "Home");
+        }
+
+
     }
 }

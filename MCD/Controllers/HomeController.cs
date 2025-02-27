@@ -45,7 +45,7 @@ namespace MCD.Controllers
             var claimsIdentity = (ClaimsIdentity)User.Identity;
             var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
 
-            List<SharedDocument> SharedDocumentList = _UnitOfWork.SharedDocument.GetAll(includeProperties: "Document").Where(u => u.ApplicationUserId == userId).ToList();
+            List<SharedDocument> SharedDocumentList = _UnitOfWork.SharedDocument.GetAll(u => u.SharedFromId == userId).ToList();
 
             return View(SharedDocumentList);
         }        
@@ -301,9 +301,15 @@ namespace MCD.Controllers
             var claimsIdentity = (ClaimsIdentity)User.Identity;
             var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
 
-            List<SharedDocument> SharedDocumentList = _UnitOfWork.SharedDocument.GetAll(includeProperties: "Document").Where(u => u.ApplicationUserId == userId).ToList();
 
+            List<SharedDocument> SharedDocumentList = _UnitOfWork.SharedDocument.GetAll(u => u.SharedFromId == userId,
+                includeProperties: "Document").ToList();
+            if (SharedDocumentList == null || !SharedDocumentList.Any()) //if there aren't any shared documents
+            {
+                TempData["Message"] = "No shared documents found.";
+            }
             return Json(new { data = SharedDocumentList });
+
         }
 
         #endregion

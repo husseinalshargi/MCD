@@ -14,17 +14,14 @@ namespace MCD.Models
         [Key]
         public int Id { get; set; }
 
-        public string ApplicationUserId { get; set; }
-        [ForeignKey("ApplicationUserId")]
-        [ValidateNever]
-        public ApplicationUser ApplicationUser { get; set; }
+        public string SharedToEmail { get; set; }
 
-        public string SharedToId { get; set; }
+        public string SharedFromId { get; set; }
 
-        [ValidateNever]
+        
         public int DocumentId { get; set; }
-        [ValidateNever]
         [ForeignKey("DocumentId")]
+        [ValidateNever]
         public Document Document { get; set; }
 
         [DataType(DataType.Date)]

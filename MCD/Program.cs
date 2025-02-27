@@ -12,7 +12,11 @@ using Microsoft.Extensions.Options;
 var builder = WebApplication.CreateBuilder(args);
 
 // to Add services to the container. -> add in thus file
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews()
+    .AddJsonOptions(options => //to make json query accepts 64 depth
+    {
+        options.JsonSerializerOptions.MaxDepth = 128;
+    });
 // to add the app db context
 builder.Services.AddDbContext<ApplicationDbContext>(options=>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))); // x=>y : lambda where x is the input and y is the function

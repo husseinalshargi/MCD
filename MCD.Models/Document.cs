@@ -51,8 +51,5 @@ namespace MCD.Models
 
         public string AITaskStatus { get; set; } // processing processed etc..
 
-        // to make the relation one-to-many -> document can have more than one shared instance
-        //to remove cascade problem 
-        public ICollection<SharedDocument> SharedDocuments { get; set; }
     }
 }
