@@ -27,7 +27,7 @@ namespace MCD.Controllers
             var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
 
             //in order to return the content of the file we should first retrieve the file it self
-            Document document = _UnitOfWork.Document.Get(u => u.Id == id); //get the document with the document id that are passed in the documents page (more info)
+            Document document = _UnitOfWork.Document.Get(u => u.Id == id, includeProperties:"Category"); //get the document with the document id that are passed in the documents page (more info)
 
             return View(document);
         }
@@ -82,6 +82,88 @@ namespace MCD.Controllers
 
             return RedirectToAction("SharedDocuments", "Home");
         }
+
+
+
+
+
+
+        [HttpPost]
+        public IActionResult AdjustDocument(int DocumentID, string CategoryName, string Title, string Category, string action)
+        {
+            //first thing make sure that the user are authenticated
+            if (!User.Identity.IsAuthenticated)
+            {
+                return RedirectToAction("Privacy", "Home"); //home controller if user aren't authenticated
+            }
+            //in order to claim the user id (the one that enters the page)
+            var claimsIdentity = (ClaimsIdentity)User.Identity;
+            var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
+
+
+            //to get the document to do an action on it (from the submitted form)
+            var document = _UnitOfWork.Document.Get(u => u.Id == DocumentID);
+            if (document == null) //if the document not found
+            {
+                TempData["ErrorMessage"] = "Document not found.";
+                return RedirectToAction("Index", "Home");
+            }
+
+            // search for the category using its name so that don't create a new category if there is one, else create a new one
+            var category = _UnitOfWork.Category.Get(u=> u.CategoryName.ToLower() == Category.ToLower() && u.ApplicationUserId == userId); //get the category of the user by its name by making them all lower cases
+            //check if the category is null then create a new one with the user input
+            int CategoryId; //to use it out of the if scope
+            if (category == null)
+            {
+                Category newCategory = new Category()
+                {
+                    CategoryName = Category,
+                    ApplicationUserId = userId
+                };
+                _UnitOfWork.Category.Add(newCategory);
+                _UnitOfWork.Save();
+                CategoryId = newCategory.Id;
+            }
+            else
+            {
+                CategoryId = category.Id;
+            }// in all cases get the id to work with it
+
+
+
+
+            //here we will check the action that the user want to do on the document and do using a switch
+            switch (action)
+            {
+                case "Summarize": //summarizing logic
+                    return RedirectToAction("MoreInfo"); 
+
+                case "Delete": //delete the document
+                    _UnitOfWork.Document.Remove(document);
+                    _UnitOfWork.Save();
+                    TempData["SuccessMessage"] = "Document deleted successfully!";
+                    return RedirectToAction("Document", "Home");
+
+                case "Update": //update the document
+                    document.Title = Title;
+                    document.CategoryId = CategoryId; //it will be automatically bounded to the category obj
+                    document.UpdateDate = DateTime.Now;
+                    _UnitOfWork.Save();
+                    TempData["SuccessMessage"] = "Document updated successfully!";
+                    return RedirectToAction("Document", "Home");
+
+                default: //in case of something goes wrong
+                    TempData["ErrorMessage"] = "Invalid action.";
+                    break;
+            }
+
+
+
+
+            return RedirectToAction("MoreInfo"); 
+        }
+
+
 
 
     }

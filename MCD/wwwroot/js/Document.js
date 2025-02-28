@@ -5,7 +5,7 @@ $(document).ready(function () {
 
 function loadDataTable() {
     dataTable = $('#tblData').DataTable({
-        "ajax": { url:'/home/getall'},
+        "ajax": { url: '/home/getall' },
         "columns": [
             {
                 data: 'fileName',
@@ -19,11 +19,7 @@ function loadDataTable() {
                 },
                 "width": "15%"
             },
-            {
-                data: 'fileName', "width": "15%", render: function (data) { // all data returned will be passed in this function
-                    return data.replace(/\.[^/.]+$/, ""); //to remove file extension using Regular Expression
-                }
-            },
+            { data: 'title', "width": "15%" },
             {
                 data: 'fileName', "width": "15%", render: function (data) { // all data returned will be passed in this function
                     return data.replace(/\.[^/.]+$/, ""); //to remove file extension using Regular Expression

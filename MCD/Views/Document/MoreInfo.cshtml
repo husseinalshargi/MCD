@@ -1,7 +1,13 @@
 @model Document
 <h1>More info about the document</h1>
 
-<table id="moreInfoTable" class="moreInfoTable" style="width:100%">
+
+<form method="post" asp-action="AdjustDocument" enctype="multipart/form-data">
+    <!-- hidden field to pass IDs without the user input it-->
+    <input type="hidden" name="DocumentID" value="@Model.Id" />
+    <!-- passing the name so that we don't just create a new one later with the same name-->
+    <input type="hidden" name="CategoryName" value="@Model.Category.CategoryName" />
+     <table id="moreInfoTable" class="moreInfoTable" style="width:100%">
         <thead id="moreInfoHead">
             <tr>
                 <th>Document</th>
@@ -14,24 +20,34 @@
                 <th>Summarize</th>
                 <th>Update</th>
                 <th>Delete</th>
+                <th>AI Task Status</th>
             </tr>
         </thead>
         <tbody id="moreInfoBody">
             <tr class="spacer-row"><td colspan="3"></td></tr>
             <tr>
                 <td>Document</td>
-                <td .disabled>Author</td>
-                <td .disbaled>File Name</td>
-                <td><input type="text" class="editable" value="Title"></td>
-                <td><input type="text" class="editable" value="Category"></td>
-                <td .disbaled>Upload date</td>
-                <td .disbaled>Update date</td>
-                <td><input type="button" id="moreInfoSummarizeButton" value="Summarize"></td>
-                <td><input type="button" id="moreInfoUpdateButton" value="Update"></td>
-                <td><input type="button" id="moreInfoDeleteButton" value="Delete"></td>
+               <td .disabled>Author</td>
+                <td .disbaled>@Model.FileName</td>
+                <td>
+                    <input name="Title" type="text" class="form-control border-0 shadow"
+                           maxlength="50" required value="@Model.Title" placeholder="@Model.Title">
+                </td>
+                <td>
+                    <input name="Category" type="text" class="form-control border-0 shadow"
+                           maxlength="30" required value="@Model.Category.CategoryName" placeholder="@Model.Category.CategoryName">
+                </td>
+                <td .disbaled>@Model.UploadDate</td>
+                <td .disbaled>@Model.UpdateDate</td> 
+                <!-- buttons with name="action" to distinguish in order to use a variable called action in the controller -->
+                <td><button type="submit" name="action" value="Summarize">Summarize</button></td>
+                <td><button type="submit" name="action" value="Update">Update</button></td>
+                <td><button type="submit" name="action" value="Delete">Delete</button></td>
+                <td>Currently not available</td>
             </tr>
         </tbody>
-</table>
+    </table>
+</form> 
 <!-- the action name is uploadshareddocument -->
 <form method="post" asp-action="UploadSharedDocument" enctype="multipart/form-data">
     <hr class="mb-4">
