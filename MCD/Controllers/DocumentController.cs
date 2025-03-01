@@ -29,7 +29,13 @@ namespace MCD.Controllers
             //in order to return the content of the file we should first retrieve the file it self
             Document document = _UnitOfWork.Document.Get(u => u.Id == id, includeProperties:"Category"); //get the document with the document id that are passed in the documents page (more info)
 
-            return View(document);
+            MoreInfoVM moreInfoVM = new MoreInfoVM()
+            {
+                Document = document,
+                CategoryList = _UnitOfWork.Category.GetAll(u => u.ApplicationUserId == userId).ToList()
+            }; //to show the user all the categories that he has when he wants to update the document
+
+            return View(moreInfoVM);
         }
 
         //share the document action
@@ -89,7 +95,7 @@ namespace MCD.Controllers
 
 
         [HttpPost]
-        public IActionResult AdjustDocument(int DocumentID, string CategoryName, string Title, string Category, string action)
+        public IActionResult AdjustDocument(int DocumentID, string Title, string Category, string action, string NewCategory)
         {
             //first thing make sure that the user are authenticated
             if (!User.Identity.IsAuthenticated)
@@ -108,27 +114,44 @@ namespace MCD.Controllers
                 TempData["ErrorMessage"] = "Document not found.";
                 return RedirectToAction("Index", "Home");
             }
-
-            // search for the category using its name so that don't create a new category if there is one, else create a new one
-            var category = _UnitOfWork.Category.Get(u=> u.CategoryName.ToLower() == Category.ToLower() && u.ApplicationUserId == userId); //get the category of the user by its name by making them all lower cases
-            //check if the category is null then create a new one with the user input
-            int CategoryId; //to use it out of the if scope
-            if (category == null)
+            int CategoryId;
+            // Check if a new category is provided
+            if (Category == "new" && !string.IsNullOrEmpty(NewCategory))
             {
-                Category newCategory = new Category()
+                // search for the category using its name so that don't create a new category
+                var oldCategory = _UnitOfWork.Category.Get(u => u.CategoryName.ToLower() == NewCategory.ToLower() && u.ApplicationUserId == userId);
+                if (oldCategory != null) //if the category already exists
                 {
-                    CategoryName = Category,
-                    ApplicationUserId = userId
-                };
-                _UnitOfWork.Category.Add(newCategory);
-                _UnitOfWork.Save();
-                CategoryId = newCategory.Id;
-            }
-            else
-            {
-                CategoryId = category.Id;
-            }// in all cases get the id to work with it
+                    CategoryId = oldCategory.Id; // Use the old category ID
 
+                }
+                else
+                {
+                    // Create new category logic
+                    var newCategory = new Category
+                    {
+                        CategoryName = NewCategory,
+                        ApplicationUserId = userId
+                    };
+                    _UnitOfWork.Category.Add(newCategory);
+                    _UnitOfWork.Save();
+                    CategoryId = newCategory.Id; // Use the new category ID
+                }
+            }
+            else //if we don't want to create a new category
+            {
+                // Get the old category ID
+                var oldCategory = _UnitOfWork.Category.Get(u => u.Id == Convert.ToInt32(Category) && u.ApplicationUserId == userId);
+                if (oldCategory != null) 
+                {
+                    CategoryId = oldCategory.Id;
+                }
+                else //to avoid errors if the category not found
+                {
+                    TempData["ErrorMessage"] = "Category not found.";
+                    return RedirectToAction("Index", "Home");
+                }
+            }
 
 
 

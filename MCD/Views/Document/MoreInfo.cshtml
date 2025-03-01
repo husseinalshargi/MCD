@@ -1,13 +1,14 @@
-@model Document
+@using MCD.Models.ViewModels
+@model MoreInfoVM
 <h1>More info about the document</h1>
 
 
 <form method="post" asp-action="AdjustDocument" enctype="multipart/form-data">
     <!-- hidden field to pass IDs without the user input it-->
-    <input type="hidden" name="DocumentID" value="@Model.Id" />
+    <input type="hidden" name="DocumentID" value="@Model.Document.Id" />
     <!-- passing the name so that we don't just create a new one later with the same name-->
-    <input type="hidden" name="CategoryName" value="@Model.Category.CategoryName" />
-     <table id="moreInfoTable" class="moreInfoTable" style="width:100%">
+    <input type="hidden" name="CategoryName" value="@Model.Document.Category.CategoryName" />
+    <table id="moreInfoTable" class="moreInfoTable" style="width:100%">
         <thead id="moreInfoHead">
             <tr>
                 <th>Document</th>
@@ -27,33 +28,61 @@
             <tr class="spacer-row"><td colspan="3"></td></tr>
             <tr>
                 <td>Document</td>
-               <td .disabled>Author</td>
-                <td .disbaled>@Model.FileName</td>
+                <td .disabled>Author</td>
+                <td .disbaled>@Model.Document.FileName</td>
                 <td>
                     <input name="Title" type="text" class="form-control border-0 shadow"
-                           maxlength="50" required value="@Model.Title" placeholder="@Model.Title">
+                    maxlength="50" required value="@Model.Document.Title" placeholder="@Model.Document.Title">
                 </td>
                 <td>
-                    <input name="Category" type="text" class="form-control border-0 shadow"
-                           maxlength="30" required value="@Model.Category.CategoryName" placeholder="@Model.Category.CategoryName">
+                    <select name="Category" id="CategoryDropdown" class="form-control border-0 shadow" required onchange="toggleNewCategoryField()">
+                        <option value="">Select a Category</option>
+                        @foreach (var category in Model.CategoryList)
+                        {
+                            @if (category.Id == Model.Document.CategoryId)
+                            {
+                                <option value="@category.Id" selected>
+                                    @category.CategoryName
+                                </option>
+                            }
+                            else
+                            {
+                                <option value="@category.Id" >
+                                    @category.CategoryName
+                                </option>
+                            }
+
+                        }
+                        <option value="new">Add New Category</option> <!-- Option to add new category -->
+                    </select>
                 </td>
-                <td .disbaled>@Model.UploadDate</td>
-                <td .disbaled>@Model.UpdateDate</td> 
+                <td>
+                <td .disbaled>@Model.Document.UploadDate</td>
+                <td .disbaled>@Model.Document.UpdateDate</td>
                 <!-- buttons with name="action" to distinguish in order to use a variable called action in the controller -->
                 <td><button type="submit" name="action" value="Summarize">Summarize</button></td>
                 <td><button type="submit" name="action" value="Update">Update</button></td>
                 <td><button type="submit" name="action" value="Delete">Delete</button></td>
                 <td>Currently not available</td>
             </tr>
+            <tr>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>
+                    <input name="NewCategory" id="NewCategoryInput" type="text" class="form-control border-0 shadow" maxlength="30" required placeholder="Enter New Category" style="display:none;">
+                </td>
+            </tr>
         </tbody>
     </table>
-</form> 
+</form>
 <!-- the action name is uploadshareddocument -->
 <form method="post" asp-action="UploadSharedDocument" enctype="multipart/form-data">
     <hr class="mb-4">
 
     <!-- hidden field to pass DocumentID without the user input it-->
-    <input type="hidden" name="DocumentID" value="@Model.Id" />
+    <input type="hidden" name="DocumentID" value="@Model.Document,Id" />
 
     <table id="addShared" class="addShared" style="width:100%">
         <thead id="addSharedHead">
@@ -94,3 +123,22 @@
     <h2>Summarization</h2>
     <p id="summarizationBox">Here we plug in the summarization (maybe we'll edit the tag later if we want to allow the user to change some of the text)</p>
 </div>
+
+
+
+
+@section Scripts {
+    <script>
+        function toggleNewCategoryField() { //for the dropdown selection to show/hide the new category input field based on the dropdown selection
+            var categoryDropdown = document.getElementById("CategoryDropdown");
+            var newCategoryInput = document.getElementById("NewCategoryInput");
+
+             //  Add New Category is selected show the input field for new category else do not
+            if (categoryDropdown.value == "new") {
+                newCategoryInput.style.display = "block";
+            } else {
+                newCategoryInput.style.display = "none";
+            }
+        }
+    </script>
+}
