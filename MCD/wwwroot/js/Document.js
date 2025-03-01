@@ -12,7 +12,6 @@ function loadDataTable() {
                 render: function (data, type, row) {//the file name to put in the path of the files
                     //row to get other data from columns
                     let userId = row.applicationUserId; // in order to get the user id to get the path
-                    let fileType = row.fileType;
                     return `<button onclick="openDocument('${userId}', '${data}')" class="btn btn-primary">
                             <i class="bi bi-file-earmark"></i> Open Document
                         </button>`;
