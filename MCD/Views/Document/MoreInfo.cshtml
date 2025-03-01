@@ -27,12 +27,16 @@
         <tbody id="moreInfoBody">
             <tr class="spacer-row"><td colspan="3"></td></tr>
             <tr>
-                <td>Document</td>
-                <td .disabled>Author</td>
+                <td>
+                    <button onclick="openDocument('@Model.Document.ApplicationUserId', '@Model.Document.FileName')" class="btn btn-secondary">
+                        <i class="bi bi-file-earmark"></i> Open Document
+                    </button>
+                </td>
+                <td .disabled>@Model.Document.ApplicationUser.Email</td>
                 <td .disbaled>@Model.Document.FileName</td>
                 <td>
                     <input name="Title" type="text" class="form-control border-0 shadow"
-                    maxlength="50" required value="@Model.Document.Title" placeholder="@Model.Document.Title">
+                           maxlength="50" required value="@Model.Document.Title" placeholder="@Model.Document.Title">
                 </td>
                 <td>
                     <select name="Category" id="CategoryDropdown" class="form-control border-0 shadow" required onchange="toggleNewCategoryField()">
@@ -47,7 +51,7 @@
                             }
                             else
                             {
-                                <option value="@category.Id" >
+                                <option value="@category.Id">
                                     @category.CategoryName
                                 </option>
                             }
@@ -56,13 +60,12 @@
                         <option value="new">Add New Category</option> <!-- Option to add new category -->
                     </select>
                 </td>
-                <td>
                 <td .disbaled>@Model.Document.UploadDate</td>
                 <td .disbaled>@Model.Document.UpdateDate</td>
                 <!-- buttons with name="action" to distinguish in order to use a variable called action in the controller -->
-                <td><button type="submit" name="action" value="Summarize">Summarize</button></td>
-                <td><button type="submit" name="action" value="Update">Update</button></td>
-                <td><button type="submit" name="action" value="Delete">Delete</button></td>
+                <td><button type="submit" name="action" value="Summarize" class="btn btn-secondary">Summarize</button></td>
+                <td><button type="submit" name="action" value="Update" class="btn btn-secondary">Update</button></td>
+                <td><button type="submit" name="action" value="Delete" class="btn btn-secondary">Delete</button></td>
                 <td>Currently not available</td>
             </tr>
             <tr>
@@ -139,6 +142,24 @@
             } else {
                 newCategoryInput.style.display = "none";
             }
+        }
+
+        function openDocument(userId, fileName) { // a function to call inside render for getting html in the table
+            $.ajax({
+                url: `/home/GetDocument?userId=${userId}&fileName=${fileName}`, //in order to use the same fumction in the home controller to open the document (to avoid duplication)
+                type: 'GET',
+                success: function (response) {
+                    if (response && response.fileUrl) {
+                        window.open(response.fileUrl, '_blank'); // Open in new tab -> _self to open in the same page
+                    } else {
+                        alert("Error: Unable to fetch the document.");
+                    }
+                },
+                error: function (xhr) {
+                    console.log("AJAX Error:", xhr.responseText);
+                    alert("Error: Could not open the document.");
+                }
+            });
         }
     </script>
 }

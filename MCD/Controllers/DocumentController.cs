@@ -27,7 +27,7 @@ namespace MCD.Controllers
             var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
 
             //in order to return the content of the file we should first retrieve the file it self
-            Document document = _UnitOfWork.Document.Get(u => u.Id == id, includeProperties:"Category"); //get the document with the document id that are passed in the documents page (more info)
+            Document document = _UnitOfWork.Document.Get(u => u.Id == id, includeProperties:"Category,ApplicationUser"); //get the document with the document id that are passed in the documents page (more info)
 
             MoreInfoVM moreInfoVM = new MoreInfoVM()
             {
