@@ -48,7 +48,36 @@ namespace MCD.Controllers
             List<SharedDocument> SharedDocumentList = _UnitOfWork.SharedDocument.GetAll(u => u.SharedFromId == userId).ToList();
 
             return View(SharedDocumentList);
-        }        
+        }
+        
+        public IActionResult RemoveAccess(int SharedAccessId)
+        {
+            if (!User.Identity.IsAuthenticated) // in order to avoid null errors in the next step we will check first if the user is authenticated 
+            {
+                return RedirectToAction("Privacy");
+            }
+
+            var claimsIdentity = (ClaimsIdentity)User.Identity;
+            var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
+
+            //search for the shared document to delete it ( remove access )
+            SharedDocument sharedDocument = _UnitOfWork.SharedDocument.Get(u => u.Id == SharedAccessId);
+            if (sharedDocument == null) //to avoid errors
+            {
+                TempData["ErrorMessage"] = "Error while removing access. Access might be removed already.";
+                return RedirectToAction(nameof(SharedDocuments));
+            }
+
+            //here is the logic of removing the access
+            _UnitOfWork.SharedDocument.Remove(sharedDocument);
+            _UnitOfWork.Save(); //save changes
+
+            TempData["SuccessMessage"] = "Access removed successfully.";
+
+            return RedirectToAction(nameof(SharedDocuments));
+        }
+
+
 
         public IActionResult UserManagement()
         {
@@ -306,7 +335,7 @@ namespace MCD.Controllers
                 includeProperties: "Document").ToList();
             if (SharedDocumentList == null || !SharedDocumentList.Any()) //if there aren't any shared documents
             {
-                TempData["Message"] = "No shared documents found.";
+                TempData["ErrorMessage"] = "No shared documents found.";
             }
             return Json(new { data = SharedDocumentList });
 
