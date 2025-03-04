@@ -12,9 +12,13 @@ function loadDataTable() {
                 render: function (data, type, row) {//the file name to put in the path of the files
                     //row to get other data from columns
                     let userId = row.applicationUserId; // in order to get the user id to get the path
-                    return `<button onclick="openDocument('${userId}', '${data}')" class="btn btn-primary">
-                            <i class="bi bi-file-earmark"></i> Open Document
-                        </button>`;
+                    let preview = 'preview'; // to get read only access
+                    let edit = 'edit'; // to get edit access
+                    return `<div>
+                                <button onclick="openDocument('${userId}', '${data}')" class="btn btn-danger">
+                                    <i class="bi bi-file-earmark"></i> Access File
+                                </button>
+                            </div>`;
                 },
                 "width": "15%"
             },

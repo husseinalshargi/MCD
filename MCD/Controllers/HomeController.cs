@@ -50,7 +50,7 @@ namespace MCD.Controllers
             return View(SharedDocumentList);
         }
         
-        public IActionResult RemoveAccess(int SharedAccessId)
+        public IActionResult RemoveAccess(int SharedAccessId, string FileName)
         {
             if (!User.Identity.IsAuthenticated) // in order to avoid null errors in the next step we will check first if the user is authenticated 
             {
@@ -68,6 +68,15 @@ namespace MCD.Controllers
                 return RedirectToAction(nameof(SharedDocuments));
             }
 
+            //create log for the action
+            _UnitOfWork.AuditLog.Add(new AuditLog() //in all cases log the action
+            {
+                ApplicationUserId = userId,
+                Action = $"Removed ${sharedDocument.SharedToEmail} Access",
+                FileName = FileName,
+                ActionDate = DateTime.Now
+            });
+
             //here is the logic of removing the access
             _UnitOfWork.SharedDocument.Remove(sharedDocument);
             _UnitOfWork.Save(); //save changes
@@ -77,12 +86,7 @@ namespace MCD.Controllers
             return RedirectToAction(nameof(SharedDocuments));
         }
 
-
-
-        public IActionResult UserManagement()
-        {
-            return View();
-        }      
+    
 
         public IActionResult AuditLogs()
         {
@@ -155,7 +159,7 @@ namespace MCD.Controllers
                 var userFolderResponse = await userFolderRequest.ExecuteAsync();
                 string userFolderId = null;
 
-                //here is the logic of searching for a file, if it wasn't here create one
+                //here is the logic of searching for a folder, if it wasn't here create one
                 string parentFolderId = null; // to put in the parent name (folder)
                 if (userFolderResponse.Files.Count == 0) // if not found
                 {
@@ -221,7 +225,13 @@ namespace MCD.Controllers
                     AITaskStatus = "---"
                 };
 
-                
+                _UnitOfWork.AuditLog.Add(new AuditLog() //in all cases log the action
+                {
+                    ApplicationUserId = userId,
+                    Action = "Created",
+                    FileName = model.DocumentFile.FileName,
+                    ActionDate = DateTime.Now
+                });
 
                 _UnitOfWork.Document.Add(document); //add it to the db
                 _UnitOfWork.Save();
@@ -302,7 +312,7 @@ namespace MCD.Controllers
             //here is the actual searching of the user requested file 
             var fileRequest = driveService.Files.List();
             fileRequest.Q = $"name = '{fileName}' and '{UserFolderId}' in parents and trashed = false";
-            fileRequest.Fields = "files(id, name, webViewLink)"; //webViewLink in order to see it without needing for any downloading
+            fileRequest.Fields = "files(id, name, webViewLink, mimeType)"; //webViewLink in order to see it without needing for any downloading, and mimeType if user wants to update the file
             var fileResponse = await fileRequest.ExecuteAsync();
             var file = fileResponse.Files.FirstOrDefault();
 
@@ -320,10 +330,24 @@ namespace MCD.Controllers
             //stream.Position = 0;
             //return File(stream, file.MimeType); // so that we return it as to download
 
-            return Json(new {fileUrl = file.WebViewLink}); // in order to see it without needing to download
+
+
+            _UnitOfWork.AuditLog.Add(new AuditLog() //in all cases log the action
+            {
+                ApplicationUserId = userId,
+                Action = "Accessed",
+                FileName = file.Name,
+                ActionDate = DateTime.Now
+            });
+
+            string fileUrl;
+            fileUrl = file.WebViewLink;
+
+
+            return Json(new {fileUrl}); // in order to see it without needing to download
 
         }
-        
+
         [HttpGet]
         public IActionResult GetAllSharedDocuments() //to get all shared documents in datatables API
         {

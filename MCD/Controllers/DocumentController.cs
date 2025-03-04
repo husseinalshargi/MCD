@@ -3,6 +3,7 @@ using MCD.Models;
 using MCD.Models.ViewModels;
 using MCD.Utility;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.CodeAnalysis;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
 
@@ -86,6 +87,16 @@ namespace MCD.Controllers
 
             TempData["SuccessMessage"] = "Document shared successfully!";
 
+            _UnitOfWork.AuditLog.Add(new AuditLog() //in all cases log the action
+            {
+                ApplicationUserId = userId,
+                Action = $"Gave ${SharedToUser.Email.ToLower()} Access",
+                FileName = _UnitOfWork.Document.Get(u=>u.Id == DocumentId).FileName,
+                ActionDate = DateTime.Now
+            });
+
+
+
             return RedirectToAction("SharedDocuments", "Home");
         }
 
@@ -114,6 +125,16 @@ namespace MCD.Controllers
                 TempData["ErrorMessage"] = "Document not found.";
                 return RedirectToAction("Index", "Home");
             }
+
+            _UnitOfWork.AuditLog.Add(new AuditLog() //in all cases log the action
+            {
+                ApplicationUserId = userId,
+                Action = $"Edited MetaData",
+                FileName = document.FileName,
+                ActionDate = DateTime.Now
+            });
+
+
             int CategoryId;
             // Check if a new category is provided
             if (Category == "new" && !string.IsNullOrEmpty(NewCategory))

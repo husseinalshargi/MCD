@@ -23,6 +23,8 @@ namespace MCD.Models
         [Required]
         public string? Action { get; set; }
 
+        public string FileName { get; set; }
+
         [Required]
         [DataType(DataType.Date)] //to ensure that the type will be date
         [DisplayFormat(ApplyFormatInEditMode = true, DataFormatString = "{0:yyyy-MM-dd HH:mm:ss}")]

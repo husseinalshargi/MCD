@@ -32,8 +32,8 @@ function loadDataTable() {
             },
             {
                 data: 'id',
-                "render": function (data) { //the data is the id
-                    return `<a href="/Home/RemoveAccess?SharedAccessId=${data}" class="btn btn-warning mx-2"> <i class="bi bi-x-lg"></i> Remove </a>`
+                "render": function (data, type, row) { //the data is the id
+                    return `<a href="/Home/RemoveAccess?SharedAccessId=${data}&FileName=${row.document.fileName}" class="btn btn-warning mx-2"> <i class="bi bi-x-lg"></i> Remove </a>`
 
                 },
                 "width": "10%"
