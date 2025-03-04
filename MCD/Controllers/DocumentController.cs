@@ -3,7 +3,6 @@ using MCD.Models;
 using MCD.Models.ViewModels;
 using MCD.Utility;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.CodeAnalysis;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
 
@@ -90,10 +89,12 @@ namespace MCD.Controllers
             _UnitOfWork.AuditLog.Add(new AuditLog() //in all cases log the action
             {
                 ApplicationUserId = userId,
+                userEmailAddress = _UnitOfWork.ApplicationUser.Get(u => u.Id == userId).Email,
                 Action = $"Gave ${SharedToUser.Email.ToLower()} Access",
                 FileName = _UnitOfWork.Document.Get(u=>u.Id == DocumentId).FileName,
                 ActionDate = DateTime.Now
             });
+            _UnitOfWork.Save(); //save the changes after adding the log
 
 
 
@@ -129,10 +130,12 @@ namespace MCD.Controllers
             _UnitOfWork.AuditLog.Add(new AuditLog() //in all cases log the action
             {
                 ApplicationUserId = userId,
+                userEmailAddress = _UnitOfWork.ApplicationUser.Get(u => u.Id == userId).Email,
                 Action = $"Edited MetaData",
                 FileName = document.FileName,
                 ActionDate = DateTime.Now
             });
+            _UnitOfWork.Save(); //save the changes after adding the log
 
 
             int CategoryId;

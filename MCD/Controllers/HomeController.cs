@@ -72,10 +72,12 @@ namespace MCD.Controllers
             _UnitOfWork.AuditLog.Add(new AuditLog() //in all cases log the action
             {
                 ApplicationUserId = userId,
+                userEmailAddress = _UnitOfWork.ApplicationUser.Get(u => u.Id == userId).Email,
                 Action = $"Removed ${sharedDocument.SharedToEmail} Access",
                 FileName = FileName,
                 ActionDate = DateTime.Now
             });
+            _UnitOfWork.Save(); //save the changes after adding the log
 
             //here is the logic of removing the access
             _UnitOfWork.SharedDocument.Remove(sharedDocument);
@@ -228,10 +230,12 @@ namespace MCD.Controllers
                 _UnitOfWork.AuditLog.Add(new AuditLog() //in all cases log the action
                 {
                     ApplicationUserId = userId,
+                    userEmailAddress = _UnitOfWork.ApplicationUser.Get(u => u.Id == userId).Email,
                     Action = "Created",
                     FileName = model.DocumentFile.FileName,
                     ActionDate = DateTime.Now
                 });
+                _UnitOfWork.Save(); //save the changes after adding the log
 
                 _UnitOfWork.Document.Add(document); //add it to the db
                 _UnitOfWork.Save();
@@ -335,11 +339,12 @@ namespace MCD.Controllers
             _UnitOfWork.AuditLog.Add(new AuditLog() //in all cases log the action
             {
                 ApplicationUserId = userId,
+                userEmailAddress = _UnitOfWork.ApplicationUser.Get(u => u.Id == userId).Email,
                 Action = "Accessed",
                 FileName = file.Name,
                 ActionDate = DateTime.Now
             });
-
+            _UnitOfWork.Save(); //save the changes after adding the log
             string fileUrl;
             fileUrl = file.WebViewLink;
 

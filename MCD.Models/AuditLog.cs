@@ -25,6 +25,8 @@ namespace MCD.Models
 
         public string FileName { get; set; }
 
+        public string userEmailAddress { get; set; }
+
         [Required]
         [DataType(DataType.Date)] //to ensure that the type will be date
         [DisplayFormat(ApplyFormatInEditMode = true, DataFormatString = "{0:yyyy-MM-dd HH:mm:ss}")]
