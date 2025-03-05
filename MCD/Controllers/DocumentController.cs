@@ -38,6 +38,19 @@ namespace MCD.Controllers
             return View(moreInfoVM);
         }
 
+        public IActionResult SharedDocuments() //to display documents that are shared from other users 
+        {
+            //check if the user is authenticated to avoid errors
+            if (!User.Identity.IsAuthenticated) 
+            {
+                return RedirectToAction("Privacy", "Home");
+            }
+            return View();
+        }
+
+
+
+
         //share the document action
         [HttpPost]
         public IActionResult UploadSharedDocument(int DocumentId, string SharedToEmail) //shared id -> user email
@@ -211,7 +224,23 @@ namespace MCD.Controllers
         }
 
 
+        #region api calls
+        [HttpGet]
+        public IActionResult GetallSharedDocuments() //to get all shared documents in datatables API
+        {
+            //to get the user id to get all shared documents to him by using his email
+            var claimsIdentity = (ClaimsIdentity)User.Identity;
+            var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
+            var SharedToUser = _UnitOfWork.ApplicationUser.Get(u => u.Id == userId); //get the user by his id to get all shared documents to him using his email (shared to property)
 
+
+            List<SharedDocument> SharedDocumentList = _UnitOfWork.SharedDocument.GetAll(u => u.SharedToEmail.ToLower() == SharedToUser.Email.ToLower(),
+                includeProperties: "Document,Document.ApplicationUser").ToList();
+            return Json(new { data = SharedDocumentList });
+
+        }
+
+        #endregion
 
     }
 }

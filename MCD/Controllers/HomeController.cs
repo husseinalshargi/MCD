@@ -282,10 +282,16 @@ namespace MCD.Controllers
             //to determine whether the user can access this document or not
             var claimsIdentity = (ClaimsIdentity)User.Identity;
             var currentUserId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value; //to get the id of the current requesting user
-            //here it will compare if this is the correct user or not
-            if (currentUserId != userId)
+            //here it will compare if this is the correct user or not or a user that has the right to access the file
+            var currentUser = _UnitOfWork.ApplicationUser.Get(u => u.Id == currentUserId);
+            var SharedDocument = _UnitOfWork.SharedDocument.Get(u => u.SharedToEmail.Trim().ToLower() == currentUser.Email.Trim().ToLower()
+         && u.Document.FileName.Trim().ToLower() == fileName.Trim().ToLower(),
+                includeProperties: "Document");
+            if (currentUserId != userId) //if the user is not the same as the one who uploaded the file
             {
+                if( SharedDocument == null) { // if the document is not shared with the user
                 return Unauthorized("Access denied.");
+                }
             }
 
 
@@ -339,7 +345,7 @@ namespace MCD.Controllers
             _UnitOfWork.AuditLog.Add(new AuditLog() //in all cases log the action
             {
                 ApplicationUserId = userId,
-                userEmailAddress = _UnitOfWork.ApplicationUser.Get(u => u.Id == userId).Email,
+                userEmailAddress = currentUser.Email,
                 Action = "Accessed",
                 FileName = file.Name,
                 ActionDate = DateTime.Now

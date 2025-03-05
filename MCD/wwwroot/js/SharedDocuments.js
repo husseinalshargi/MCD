@@ -4,8 +4,8 @@ $(document).ready(function () {
 })
 
 function loadDataTable() {
-    dataTable = $('#accessManagementsTable').DataTable({
-        "ajax": { url: '/home/getallaccessmanagements' },
+    dataTable = $('#sharedDocumentsTable').DataTable({
+        "ajax": { url: '/document/getallshareddocuments' },
         "columns": [
             {
                 data: 'document.fileName',
@@ -18,25 +18,18 @@ function loadDataTable() {
                                 </button>
                             </div>`;
                 },
-                "width": "15%"
+                "width": "20%"
             },
-            { data: 'document.title', "width": "25%" },
-            { data: 'sharedToEmail', "width": "25%" },
+            { data: 'document.fileName', "width": "20%" },
+            { data: 'document.title', "width": "20%" },
+            { data: 'document.applicationUser.email', "width": "15%" },
             {
-                data: 'sharedAt', "width": "20%",
+                data: 'sharedAt', "width": "15%",
                 render: function (data) {
                     return new Date(data).toLocaleString(); // Format timestamp to make it readable
                 }
 
-            },
-            {
-                data: 'id',
-                "render": function (data, type, row) { //the data is the id
-                    return `<a href="/Home/RemoveAccess?SharedAccessId=${data}&FileName=${row.document.fileName}" class="btn btn-warning mx-2"> <i class="bi bi-x-lg"></i> Remove </a>`
-
-                },
-                "width": "15%"
-            },
+            }
         ]
     });
 }
