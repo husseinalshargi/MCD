@@ -12,8 +12,6 @@ function loadDataTable() {
                 render: function (data, type, row) {//the file name to put in the path of the files
                     //row to get other data from columns
                     let userId = row.applicationUserId; // in order to get the user id to get the path
-                    let preview = 'preview'; // to get read only access
-                    let edit = 'edit'; // to get edit access
                     return `<div>
                                 <button onclick="openDocument('${userId}', '${data}')" class="btn btn-danger">
                                     <i class="bi bi-file-earmark"></i> Access File
@@ -28,8 +26,18 @@ function loadDataTable() {
                     return data.replace(/\.[^/.]+$/, ""); //to remove file extension using Regular Expression
                 }
             },
-            { data: 'uploadDate', "width": "15%" },
-            { data: 'updateDate', "width": "15%" },
+            {
+                data: 'uploadDate', "width": "15%",
+                render: function (data) {
+                    return new Date(data).toLocaleString(); // Format timestamp to make it readable
+                }
+            },
+            {
+                data: 'updateDate', "width": "15%",
+                render: function (data) {
+                    return new Date(data).toLocaleString(); // Format timestamp to make it readable
+                }
+            },
             { data: 'category.categoryName', "width": "10%" },
             {
                 data: 'id',

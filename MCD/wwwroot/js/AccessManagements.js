@@ -4,8 +4,8 @@ $(document).ready(function () {
 })
 
 function loadDataTable() {
-    dataTable = $('#sharedDocsTable').DataTable({
-        "ajax": { url: '/home/getallshareddocuments' },
+    dataTable = $('#accessManagementsTable').DataTable({
+        "ajax": { url: '/home/getallaccessmanagements' },
         "columns": [
             {
                 data: 'document.fileName',
@@ -20,7 +20,13 @@ function loadDataTable() {
             },
             { data: 'document.title', "width": "15%" },
             { data: 'sharedToEmail', "width": "15%" },
-            { data: 'sharedAt', "width": "15%" },
+            {
+                data: 'sharedAt', "width": "15%",
+                render: function (data) {
+                    return new Date(data).toLocaleString(); // Format timestamp to make it readable
+                }
+
+            },
             { data: 'sharedToEmail', "width": "20%" },
             {
                 data: 'id',

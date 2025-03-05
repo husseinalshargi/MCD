@@ -14,7 +14,7 @@ function loadDataTable() {
                 data: 'actionDate',
                 width: "25%",
                 render: function (data) {
-                    return new Date(data).toLocaleString(); // Format timestamp
+                    return new Date(data).toLocaleString(); // Format timestamp to make it readable
                 }
             }
         ]

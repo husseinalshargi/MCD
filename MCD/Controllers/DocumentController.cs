@@ -70,7 +70,7 @@ namespace MCD.Controllers
             if (existingSharedDocument != null)
             {
                 TempData["ErrorMessage"] = "This document is already shared with this user.";
-                return RedirectToAction("SharedDocuments", "Home");
+                return RedirectToAction("AccessManagements", "Home");
             }
 
 
@@ -98,7 +98,7 @@ namespace MCD.Controllers
 
 
 
-            return RedirectToAction("SharedDocuments", "Home");
+            return RedirectToAction("AccessManagements", "Home");
         }
 
 

@@ -34,7 +34,7 @@ namespace MCD.Controllers
 
 
 
-        public IActionResult SharedDocuments()
+        public IActionResult AccessManagements()
         {
             if (!User.Identity.IsAuthenticated) // in order to avoid null errors in the next step we will check first if the user is authenticated 
             {
@@ -45,9 +45,9 @@ namespace MCD.Controllers
             var claimsIdentity = (ClaimsIdentity)User.Identity;
             var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
 
-            List<SharedDocument> SharedDocumentList = _UnitOfWork.SharedDocument.GetAll(u => u.SharedFromId == userId).ToList();
+            List<SharedDocument> AccessManagementsList = _UnitOfWork.SharedDocument.GetAll(u => u.SharedFromId == userId).ToList();
 
-            return View(SharedDocumentList);
+            return View(AccessManagementsList);
         }
         
         public IActionResult RemoveAccess(int SharedAccessId, string FileName)
@@ -65,7 +65,7 @@ namespace MCD.Controllers
             if (sharedDocument == null) //to avoid errors
             {
                 TempData["ErrorMessage"] = "Error while removing access. Access might be removed already.";
-                return RedirectToAction(nameof(SharedDocuments));
+                return RedirectToAction(nameof(AccessManagements));
             }
 
             //create log for the action
@@ -85,7 +85,7 @@ namespace MCD.Controllers
 
             TempData["SuccessMessage"] = "Access removed successfully.";
 
-            return RedirectToAction(nameof(SharedDocuments));
+            return RedirectToAction(nameof(AccessManagements));
         }
 
     
@@ -354,7 +354,7 @@ namespace MCD.Controllers
         }
 
         [HttpGet]
-        public IActionResult GetAllSharedDocuments() //to get all shared documents in datatables API
+        public IActionResult GetAllAccessManagements() //to get all shared documents in datatables API
         {
             var claimsIdentity = (ClaimsIdentity)User.Identity;
             var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;

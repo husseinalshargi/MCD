@@ -1,6 +1,6 @@
 @model List<SharedDocument>
 <div class="text-center">
-    <table id="sharedDocsTable" class="table table-bordered table-striped" style="width:100%">
+    <table id="accessManagementsTable" class="table table-bordered table-striped" style="width:100%">
         <thead>
             <tr>
                 <th>Document</th>
@@ -17,7 +17,7 @@
 
 
 @section Scripts {
-    <script src="~/js/SharedDocument.js"></script>
+    <script src="~/js/AccessManagements.js"></script>
 }
 
 @if (TempData["ErrorMessage"] != null)
