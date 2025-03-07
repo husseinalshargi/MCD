@@ -69,7 +69,7 @@ namespace MCD.Controllers
 
             if (string.IsNullOrEmpty(SharedToEmail))
             {
-                TempData["ErrorMessage"] = "Do not leave it empty."; //there aren't a user with this email
+                TempData["error"] = "Do not leave it empty."; //there aren't a user with this email
                 return RedirectToAction("MoreInfo", new { id = DocumentId }); //return to the function with the document id
             }
 
@@ -77,7 +77,7 @@ namespace MCD.Controllers
             var SharedToUser = _UnitOfWork.ApplicationUser.Get(u => u.Email.ToLower() == SharedToEmail.ToLower());
             if(SharedToUser == null)
             {
-                TempData["ErrorMessage"] = "User with this email does not exist.";
+                TempData["error"] = "User with this email does not exist.";
                 return RedirectToAction("MoreInfo", new { id = DocumentId }); //return to the function with the document id
             }
 
@@ -85,7 +85,7 @@ namespace MCD.Controllers
             var existingSharedDocument = _UnitOfWork.SharedDocument.Get(u => u.DocumentId == DocumentId && u.SharedFromId == SharedToUser.Id);
             if (existingSharedDocument != null)
             {
-                TempData["ErrorMessage"] = "This document is already shared with this user.";
+                TempData["error"] = "This document is already shared with this user.";
                 return RedirectToAction("AccessManagements", "Home");
             }
 
@@ -100,7 +100,7 @@ namespace MCD.Controllers
             });
             _UnitOfWork.Save(); //save changes after adding the shared doc
 
-            TempData["SuccessMessage"] = "Document shared successfully! check your email for more info.";
+            TempData["success"] = "Document shared successfully! check your email for more info.";
 
             //use the google drive class from the utilities
             var DriveService = await _GoogleDriveService.GetDriveService();
@@ -173,7 +173,7 @@ namespace MCD.Controllers
             var document = _UnitOfWork.Document.Get(u => u.Id == DocumentID);
             if (document == null) //if the document not found
             {
-                TempData["ErrorMessage"] = "Document not found.";
+                TempData["error"] = "Document not found.";
                 return RedirectToAction("Index", "Home");
             }
 
@@ -222,7 +222,7 @@ namespace MCD.Controllers
                 }
                 else //to avoid errors if the category not found
                 {
-                    TempData["ErrorMessage"] = "Category not found.";
+                    TempData["error"] = "Category not found.";
                     return RedirectToAction("Index", "Home");
                 }
             }
@@ -238,7 +238,7 @@ namespace MCD.Controllers
                 case "Delete": //delete the document
                     _UnitOfWork.Document.Remove(document);
                     _UnitOfWork.Save();
-                    TempData["SuccessMessage"] = "Document deleted successfully!";
+                    TempData["success"] = "Document deleted successfully!";
                     return RedirectToAction("Document", "Home");
 
                 case "Update": //update the document
@@ -246,11 +246,11 @@ namespace MCD.Controllers
                     document.CategoryId = CategoryId; //it will be automatically bounded to the category obj
                     document.UpdateDate = DateTime.Now;
                     _UnitOfWork.Save();
-                    TempData["SuccessMessage"] = "Document updated successfully!";
+                    TempData["success"] = "Document updated successfully!";
                     return RedirectToAction("Document", "Home");
 
                 default: //in case of something goes wrong
-                    TempData["ErrorMessage"] = "Invalid action.";
+                    TempData["error"] = "Invalid action.";
                     break;
             }
 

@@ -64,7 +64,7 @@ namespace MCD.Controllers
             SharedDocument sharedDocument = _UnitOfWork.SharedDocument.Get(u => u.Id == SharedAccessId);
             if (sharedDocument == null) //to avoid errors
             {
-                TempData["ErrorMessage"] = "Error while removing access. Access might be removed already.";
+                TempData["error"] = "Error while removing access. Access might be removed already.";
                 return RedirectToAction(nameof(AccessManagements));
             }
 
@@ -83,7 +83,7 @@ namespace MCD.Controllers
             _UnitOfWork.SharedDocument.Remove(sharedDocument);
             _UnitOfWork.Save(); //save changes
 
-            TempData["SuccessMessage"] = "Access removed successfully.";
+            TempData["success"] = "Access removed successfully.";
 
             return RedirectToAction(nameof(AccessManagements));
         }
@@ -373,7 +373,7 @@ namespace MCD.Controllers
                 includeProperties: "Document").ToList();
             if (SharedDocumentList == null || !SharedDocumentList.Any()) //if there aren't any shared documents
             {
-                TempData["ErrorMessage"] = "No shared documents found.";
+                TempData["error"] = "No shared documents found.";
             }
             return Json(new { data = SharedDocumentList });
 
