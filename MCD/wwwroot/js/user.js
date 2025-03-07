@@ -73,7 +73,7 @@ function LockUnlock(id) {
             }
         }
     });
-} url: `/home/GetDocument?userId=${userId}&fileName=${fileName}`
+} 
 
 
 function changeUserRole(userId) { //to use the method in the controller to change the role by using post (not get as at isn't secure)
