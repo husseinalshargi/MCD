@@ -1,4 +1,5 @@
-﻿using MCD.DataAccess.Repository.IRepository;
+﻿using Google.Apis.Drive.v3;
+using MCD.DataAccess.Repository.IRepository;
 using MCD.Models;
 using MCD.Models.ViewModels;
 using MCD.Utility;
@@ -11,9 +12,11 @@ namespace MCD.Controllers
     public class DocumentController : Controller
     {
         private readonly IUnitOfWork _UnitOfWork;
-        public DocumentController (IUnitOfWork unitOfWork)
+        private readonly GoogleDriveService _GoogleDriveService;
+        public DocumentController (IUnitOfWork unitOfWork, GoogleDriveService googleDriveService)
         {
             _UnitOfWork = unitOfWork;
+            _GoogleDriveService = googleDriveService;
         }
         public IActionResult MoreInfo(int? id)
         {
@@ -53,7 +56,7 @@ namespace MCD.Controllers
 
         //share the document action
         [HttpPost]
-        public IActionResult UploadSharedDocument(int DocumentId, string SharedToEmail) //shared id -> user email
+        public async Task<IActionResult> UploadSharedDocument(int DocumentId, string SharedToEmail) //shared id -> user email
         {
             //first thing make sure that the user are authenticated
             if (!User.Identity.IsAuthenticated)
@@ -66,8 +69,8 @@ namespace MCD.Controllers
 
             if (string.IsNullOrEmpty(SharedToEmail))
             {
-                TempData["ErrorMessage"] = "User with this email does not exist."; //there aren't a user with this email
-                return RedirectToAction(nameof(MoreInfo)); //return the same view
+                TempData["ErrorMessage"] = "Do not leave it empty."; //there aren't a user with this email
+                return RedirectToAction("MoreInfo", new { id = DocumentId }); //return to the function with the document id
             }
 
 
@@ -75,7 +78,7 @@ namespace MCD.Controllers
             if(SharedToUser == null)
             {
                 TempData["ErrorMessage"] = "User with this email does not exist.";
-                return RedirectToAction(nameof(MoreInfo));
+                return RedirectToAction("MoreInfo", new { id = DocumentId }); //return to the function with the document id
             }
 
             // if the document is already shared with the same user
@@ -97,7 +100,41 @@ namespace MCD.Controllers
             });
             _UnitOfWork.Save(); //save changes after adding the shared doc
 
-            TempData["SuccessMessage"] = "Document shared successfully!";
+            TempData["SuccessMessage"] = "Document shared successfully! check your email for more info.";
+
+            //use the google drive class from the utilities
+            var DriveService = await _GoogleDriveService.GetDriveService();
+
+
+            //to get the file id to grant access to the user
+            //first mcd folder which has all the user's folders
+            var folderRequest = DriveService.Files.List();
+            folderRequest.Q = "name = 'MCD' and mimeType = 'application/vnd.google-apps.folder' and trashed = false";
+            folderRequest.Fields = "files(id, name)";
+            var folderResponse = await folderRequest.ExecuteAsync();
+            var mcdFolder = folderResponse.Files.FirstOrDefault();
+            string mcdFolderId = mcdFolder.Id; // get the MCD folder ID
+
+            // get user's folder ID inside MCD
+            var userFolderRequest = DriveService.Files.List();
+            userFolderRequest.Q = $"name = '{userId}' and mimeType = 'application/vnd.google-apps.folder' and '{mcdFolderId}' in parents and trashed = false";
+            userFolderRequest.Fields = "files(id, name)";
+            var userFolderResponse = await userFolderRequest.ExecuteAsync();
+            var userFolder = userFolderResponse.Files.FirstOrDefault();
+            string userFolderId = userFolder.Id; // get the user folder ID
+
+            // finally get the file ID
+            var documentName = _UnitOfWork.Document.Get(u => u.Id == DocumentId).FileName;
+            var userFileToShareRequest = DriveService.Files.List();
+            userFileToShareRequest.Q = $"name = '{documentName}' and '{userFolderId}' in parents and trashed = false";
+            userFileToShareRequest.Fields = "files(id, name)";
+            var userFileToShareResponse = await userFileToShareRequest.ExecuteAsync();
+            var userFileToShare = userFileToShareResponse.Files.FirstOrDefault();
+
+
+
+            //after getting the id of the file, in order to grant the user access to the file (making the file not accessible by someone isn't the owner or shared to user)
+            GoogleDriveService.GiveFilePermission(DriveService, "writer", userFileToShare.Id, SharedToUser.Email);
 
             _UnitOfWork.AuditLog.Add(new AuditLog() //in all cases log the action
             {

@@ -197,13 +197,16 @@ namespace MCD.Controllers
                     var request = DriveService.Files.Create(FileMetaData, stream, model.DocumentFile.ContentType);
                     request.Fields = "id, webViewLink"; //  file id and link
                     var uploadedFile = await request.UploadAsync();
-
+                    
                     if (uploadedFile.Status != Google.Apis.Upload.UploadStatus.Completed) //if there is an error with the file uploading
                     {
                         return StatusCode(500, "Error uploading file to Google Drive.");
                     }
                     // Get uploaded file details
                     var fileData = request.ResponseBody;
+                    //in order to grant the user access to the file after creating it (making the file not accessible by someone isn't the owner)
+                    GoogleDriveService.GiveFilePermission(DriveService, "writer", fileData.Id, userEmail);
+
                 }
 
                 //so that we don't create a category when we have a document with a default type

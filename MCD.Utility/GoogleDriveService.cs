@@ -5,6 +5,7 @@ using Google.Apis.Drive.v3;
 using Google.Apis.Services;
 using Google.Apis.Util.Store;
 using Microsoft.Extensions.Configuration;
+using Google.Apis.Drive.v3.Data;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -72,6 +73,20 @@ namespace MCD.Utility
                 ApplicationName = ApplicationName,
             }); //create a new instance of the drive api service
 
+        }
+        //to give permission to access file in google drive (used when creating a new file, or granting permission to another user to an existing file)
+        public static void GiveFilePermission(DriveService Service, string role, string FileId, string UserEmail)
+        {
+            //in order to create the permission
+            var Permission = new Permission()
+            {
+                Type = "user", //in order to access the file
+                Role = role, //so that the user can only see or edit the file also
+                EmailAddress = UserEmail //the email of the user
+            };
+
+            //create the permission
+            var request = Service.Permissions.Create(Permission, FileId).Execute();
         }
 
 
