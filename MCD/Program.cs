@@ -28,6 +28,17 @@ builder.Services.AddDbContext<ApplicationDbContext>(options=>
 //to add the roles also you should make the function addidentity rhather than addefaultidentity
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>().AddEntityFrameworkStores<ApplicationDbContext>().AddDefaultTokenProviders(); //to add more columns to the user table you should extend IdentityUser and replace the one in here
 
+
+//in order to specify the pages that appear when access is denied or when the user is not authenticated
+builder.Services.ConfigureApplicationCookie(options => //pages are created by default using identity
+{
+    options.LoginPath = $"/Identity/Account/Login"; //if the user is not authenticated
+    options.LogoutPath = $"/Identity/Account/Logout"; //if the user is authenticated and he wants to log out
+    options.AccessDeniedPath = $"/Identity/Account/AccessDenied"; //if the user is authenticated but he is not authorized
+});
+
+
+
 //in order to add google authentication:
 builder.Services.AddAuthentication().AddCookie().AddGoogle(option =>
 {
@@ -77,6 +88,6 @@ app.MapRazorPages();
 // here are the default route if there is any error
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+    pattern: "{area=Customer}/{controller=Home}/{action=Index}/{id?}"); //default route
 
 app.Run();

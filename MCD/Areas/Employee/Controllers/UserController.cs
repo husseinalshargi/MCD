@@ -3,13 +3,17 @@ using MCD.DataAccess.Repository;
 using MCD.DataAccess.Repository.IRepository;
 using MCD.Models;
 using MCD.Utility;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
-namespace MCD.Controllers
+namespace MCD.Areas.Employee.Controllers
 {
+    [Area("Admin")] // area of the controller
+    [Authorize(Roles = SD.Role_Admin)] // specify the role of the user that can only access this controller
+    //also we can place it above an action to specify the role of the user that can access this action
     public class UserController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;

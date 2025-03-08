@@ -18,29 +18,30 @@
                 <div class="d-flex">
                     <a class="navbar-brand ms-4" asp-area="" asp-controller="Home" asp-action="Index">MCD</a>
                     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                            aria-expanded="false" aria-label="Toggle navigation">
+                    aria-expanded="false" aria-label="Toggle navigation">
                         <span class="navbar-toggler-icon"></span>
                     </button>
                     <div class="navbar-collapse collapse d-sm-inline-flex">
                         <ul class="navbar-nav flex-grow-1">
                             <li class="nav-item">
-                                <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+                                <a class="nav-link" asp-area="Customer" asp-controller="Home" asp-action="Document">Documents</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Document">Documents</a>
+                                <a class="nav-link" asp-area="Customer" asp-controller="Document" asp-action="SharedDocuments">Shared Documents</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" asp-area="" asp-controller="Document" asp-action="SharedDocuments">Shared Documents</a>
+                                <a class="nav-link" asp-area="Customer" asp-controller="Home" asp-action="AccessManagements">Access Management</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" asp-area="" asp-controller="Home" asp-action="AccessManagements">Access Management</a>
+                                <a class="nav-link" asp-area="Customer" asp-controller="Logs" asp-action="AuditLogs">Audit Logs</a>
                             </li>
-                            <li class="nav-item">
-                                <a class="nav-link" asp-area="" asp-controller="User" asp-action="Index">Users Management</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" asp-area="" asp-controller="Logs" asp-action="AuditLogs">Audit Logs</a>
-                            </li>
+                            @* in order to make the link only seen by an employee *@
+                            @if (User.IsInRole("Employee"))
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-area="Employee" asp-controller="User" asp-action="Index">Users Management</a>
+                                </li>
+                            }
                         </ul>
                     </div>
                 </div>

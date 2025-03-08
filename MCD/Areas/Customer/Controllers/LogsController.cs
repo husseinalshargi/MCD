@@ -2,11 +2,14 @@
 using MCD.Models;
 using MCD.Models.ViewModels;
 using MCD.Utility;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
-namespace MCD.Controllers
+namespace MCD.Areas.Customer.Controllers
 {
+    [Area("Customer")] //to specify the area of the controller
+    [Authorize]        //to make sure that the user is authenticated before accessing the controller
     public class LogsController : Controller
     {
         private readonly IUnitOfWork _UnitOfWork;
