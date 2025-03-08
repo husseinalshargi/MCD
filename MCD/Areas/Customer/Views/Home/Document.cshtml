@@ -27,7 +27,7 @@
 
 
     <div class="overlay" id="overlay" onclick="closePopup()"></div>
-    <form method="post" asp-action="UploadDocument" enctype="multipart/form-data">
+    <form method="post" asp-area="Customer" asp-controller="Home" asp-action="UploadDocument" enctype="multipart/form-data">
         <div class="popup" id="popup">
             <p>The accepted types are: PDF and PNG</p>
             

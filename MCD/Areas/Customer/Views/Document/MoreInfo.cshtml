@@ -28,7 +28,7 @@
             <tr class="spacer-row"><td colspan="3"></td></tr>
             <tr>
                 <td>
-                    <button onclick="openDocument('@Model.Document.ApplicationUserId', '@Model.Document.FileName')" class="btn btn-secondary">
+                    <button onclick="openDocument('@Model.Document.ApplicationUserId', '@Model.Document.Id', '@Model.Document.FileName')" class="btn btn-secondary">
                         <i class="bi bi-file-earmark"></i> Open Document
                     </button>
                 </td>
@@ -144,9 +144,9 @@
             }
         }
 
-        function openDocument(userId, fileName) { // a function to call inside render for getting html in the table
+        function openDocument(userId, documentId, fileName) { // a function to call inside render for getting html in the table
             $.ajax({
-                url: `/home/GetDocument?userId=${userId}&fileName=${fileName}`, //in order to use the same fumction in the home controller to open the document (to avoid duplication)
+                url: `/Customer/home/GetDocument?userId=${userId}&documentId=${documentId}&fileName=${fileName}`, //in order to use the same fumction in the home controller to open the document (to avoid duplication)
                 type: 'GET',
                 success: function (response) {
                     if (response && response.fileUrl) {

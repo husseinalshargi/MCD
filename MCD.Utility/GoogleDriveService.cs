@@ -12,6 +12,7 @@ using System.Linq;
 using System.Runtime;
 using System.Text;
 using System.Threading.Tasks;
+using System.Reflection.Metadata;
 
 namespace MCD.Utility
 {
@@ -107,5 +108,36 @@ namespace MCD.Utility
 
             }
         }
+
+        //a method to get the file id in google drive (as it is called more than once it is better to create a method for it)
+        public static async Task<string> GetGoogleDriveFileId(DriveService service, int documentId, string documentName, string userId)
+        {
+            //to get the file id to grant access to the user
+            //first mcd folder which has all the user's folders
+            var folderRequest = service.Files.List();
+            folderRequest.Q = "name = 'MCD' and mimeType = 'application/vnd.google-apps.folder' and trashed = false";
+            folderRequest.Fields = "files(id, name)";
+            var folderResponse = await folderRequest.ExecuteAsync();
+            var mcdFolder = folderResponse.Files.FirstOrDefault();
+            string mcdFolderId = mcdFolder.Id; // get the MCD folder ID
+
+            // get user's folder ID inside MCD
+            var userFolderRequest = service.Files.List();
+            userFolderRequest.Q = $"name = '{userId}' and mimeType = 'application/vnd.google-apps.folder' and '{mcdFolderId}' in parents and trashed = false";
+            userFolderRequest.Fields = "files(id, name)";
+            var userFolderResponse = await userFolderRequest.ExecuteAsync();
+            var userFolder = userFolderResponse.Files.FirstOrDefault();
+            string userFolderId = userFolder.Id; // get the user folder ID
+
+            // finally get the file ID
+            var userFileToShareRequest = service.Files.List();
+            userFileToShareRequest.Q = $"name = '{documentId + "-" + documentName}' and '{userFolderId}' in parents and trashed = false";
+            userFileToShareRequest.Fields = "files(id, name)";
+            var userFileToShareResponse = await userFileToShareRequest.ExecuteAsync();
+            var userFileToShare = userFileToShareResponse.Files.FirstOrDefault();
+            string userFileId = userFileToShare.Id; // get the user file ID
+            return userFileId;
+        }
+
     }
 }

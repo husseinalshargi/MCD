@@ -75,34 +75,10 @@ namespace MCD.Areas.Customer.Controllers
             //first thing get the document id from google drive
             //use the google drive class from the utilities
             var DriveService = await _GoogleDriveService.GetDriveService();
+            //from the utilities in order to skip the logic of searching for the file id in google drive to avoid redundancy
+            string googleDriveFileId = await GoogleDriveService.GetGoogleDriveFileId(DriveService, sharedDocument.DocumentId, _UnitOfWork.Document.Get(u => u.Id == sharedDocument.DocumentId).FileName, userId);
 
-
-            //to get the file id to remove access from the user
-            //first mcd folder which has all the user's folders
-            var folderRequest = DriveService.Files.List();
-            folderRequest.Q = "name = 'MCD' and mimeType = 'application/vnd.google-apps.folder' and trashed = false";
-            folderRequest.Fields = "files(id, name)";
-            var folderResponse = await folderRequest.ExecuteAsync();
-            var mcdFolder = folderResponse.Files.FirstOrDefault();
-            string mcdFolderId = mcdFolder.Id; // get the MCD folder ID
-
-            // get user's folder ID inside MCD
-            var userFolderRequest = DriveService.Files.List();
-            userFolderRequest.Q = $"name = '{userId}' and mimeType = 'application/vnd.google-apps.folder' and '{mcdFolderId}' in parents and trashed = false";
-            userFolderRequest.Fields = "files(id, name)";
-            var userFolderResponse = await userFolderRequest.ExecuteAsync();
-            var userFolder = userFolderResponse.Files.FirstOrDefault();
-            string userFolderId = userFolder.Id; // get the user folder ID
-
-            // finally get the file ID
-            var documentName = _UnitOfWork.Document.Get(u => u.Id == sharedDocument.DocumentId).FileName;
-            var userFileToRemoveRequest = DriveService.Files.List();
-            userFileToRemoveRequest.Q = $"name = '{documentName}' and '{userFolderId}' in parents and trashed = false";
-            userFileToRemoveRequest.Fields = "files(id, name)";
-            var userFileToRemoveResponse = await userFileToRemoveRequest.ExecuteAsync();
-            var userFileToRemove = userFileToRemoveResponse.Files.FirstOrDefault();
-
-            GoogleDriveService.RemoveFilePermission(DriveService, userFileToRemove.Id, sharedDocument.SharedToEmail); //remove the access from the user
+            await GoogleDriveService.RemoveFilePermission(DriveService, googleDriveFileId, sharedDocument.SharedToEmail); //remove the access from the user
 
 
             //create log for the action
@@ -219,10 +195,37 @@ namespace MCD.Areas.Customer.Controllers
                     userFolderId = userFolderResponse.Files[0].Id; // Use the existing folder's id as the parent
                 }
 
+                //create the document reference in the database before uploading the file in order to get the file id of the database to save in google drive
+
+                //so that we don't create a category when we have a document with a default type
+                Category DefaultCategory = _UnitOfWork.Category.Get(u => u.ApplicationUserId == userId && u.CategoryName == "---");
+                if (DefaultCategory == null)
+                {
+                    DefaultCategory = new Category() { ApplicationUserId = userId, CategoryName = "---" };
+                }
+
+
+                //to save the document details in the db
+                Document document = new()
+                {
+                    ApplicationUserId = userId,
+                    Category = DefaultCategory,
+                    Title = model.DocumentFile.FileName,
+                    FileName = model.DocumentFile.FileName,
+                    FileType = model.DocumentFile.ContentType,
+                    UploadDate = DateTime.Now,
+                    UpdateDate = DateTime.Now,
+                    AITaskStatus = "---"
+                };
+
+                _UnitOfWork.Document.Add(document); //add it to the db
+                _UnitOfWork.Save();
+
+               var newDocumentId = document.Id; //to get the id of the document that was just created to add it to the document name in google drive
 
                 var FileMetaData = new Google.Apis.Drive.v3.Data.File()
                 {
-                    Name = model.DocumentFile.FileName,
+                    Name = newDocumentId + "-" + model.DocumentFile.FileName,
                     Parents = new List<string> { userFolderId }, //the name of the folder in the drive
                     Description = $"MCD Documents folder uploaded by: {userEmail}"
 
@@ -246,26 +249,6 @@ namespace MCD.Areas.Customer.Controllers
 
                 }
 
-                //so that we don't create a category when we have a document with a default type
-                Category DefaultCategory = _UnitOfWork.Category.Get(u => u.ApplicationUserId == userId && u.CategoryName == "---");
-                if (DefaultCategory == null) 
-                {
-                     DefaultCategory = new Category() { ApplicationUserId = userId, CategoryName = "---" };
-                }
-
-
-                //to save the document details in the db
-                Document document = new()
-                {
-                    ApplicationUserId = userId,
-                    Category = DefaultCategory,
-                    Title = model.DocumentFile.FileName,
-                    FileName = model.DocumentFile.FileName,
-                    FileType = model.DocumentFile.ContentType,
-                    UploadDate = DateTime.Now,
-                    UpdateDate = DateTime.Now,
-                    AITaskStatus = "---"
-                };
 
                 _UnitOfWork.AuditLog.Add(new AuditLog() //in all cases log the action
                 {
@@ -277,8 +260,6 @@ namespace MCD.Areas.Customer.Controllers
                 });
                 _UnitOfWork.Save(); //save the changes after adding the log
 
-                _UnitOfWork.Document.Add(document); //add it to the db
-                _UnitOfWork.Save();
 
                 if (model.Summarize == true)
                 {
@@ -317,7 +298,7 @@ namespace MCD.Areas.Customer.Controllers
             return Json(new {data =  DocumentList});
         }
         [HttpGet]
-        public async Task<IActionResult> GetDocument(string userId, string fileName)
+        public async Task<IActionResult> GetDocument(string userId, int documentId, string fileName)
         {
             //to determine whether the user can access this document or not
             var claimsIdentity = (ClaimsIdentity)User.Identity;
@@ -355,20 +336,22 @@ namespace MCD.Areas.Customer.Controllers
 
             if (userFolder == null)
             {
-                return NotFound("User folder not found in MCD.");
+                TempData["error"] = "User folder not found in MCD."; //for the user
+                return NotFound("User folder not found in MCD."); //for the developer
             }
             string UserFolderId = userFolder.Id;
 
             //here is the actual searching of the user requested file 
             var fileRequest = driveService.Files.List();
-            fileRequest.Q = $"name = '{fileName}' and '{UserFolderId}' in parents and trashed = false";
+            fileRequest.Q = $"name = '{documentId + "-" + fileName}' and '{UserFolderId}' in parents and trashed = false";
             fileRequest.Fields = "files(id, name, webViewLink, mimeType)"; //webViewLink in order to see it without needing for any downloading, and mimeType if user wants to update the file
             var fileResponse = await fileRequest.ExecuteAsync();
             var file = fileResponse.Files.FirstOrDefault();
 
             if (file == null)
             {
-                return NotFound("File not found in the user's folder.");
+                TempData["error"] ="File not found in the user's folder."; //for the user
+                return NotFound("File not found in the user's folder."); //for the developer
             }
 
             //var filePath = Path.Combine(_StoragePath, userId, fileName); // the path of the document

@@ -12,8 +12,9 @@ function loadDataTable() {
                 render: function (data, type, row) {//the file name to put in the path of the files
                     //row to get other data from columns
                     let userId = row.applicationUserId; // in order to get the user id to get the path
+                    let documentId = row.id; // in order to get the document id to get the path
                     return `<div>
-                                <button onclick="openDocument('${userId}', '${data}')" class="btn btn-danger">
+                                <button onclick="openDocument('${userId}', ${documentId}, '${data}')" class="btn btn-danger">
                                     <i class="bi bi-file-earmark"></i> Access File
                                 </button>
                             </div>`;
@@ -52,9 +53,9 @@ function loadDataTable() {
     });
 }
 
-function openDocument(userId, fileName) { // a function to call inside render for getting html in the table
+function openDocument(userId, documentId, fileName) { // a function to call inside render for getting html in the table
     $.ajax({
-        url: `/Customer/home/GetDocument?userId=${userId}&fileName=${fileName}`,
+        url: `/Customer/home/GetDocument?userId=${userId}&documentId=${documentId}&fileName=${fileName}`,
         type: 'GET',
         success: function (response) {
             if (response && response.fileUrl) {
@@ -66,6 +67,7 @@ function openDocument(userId, fileName) { // a function to call inside render fo
         error: function (xhr) {
             console.log("AJAX Error:", xhr.responseText);
             alert("Error: Could not open the document.");
+            location.reload(); // Refresh the page
         }
     });
 }

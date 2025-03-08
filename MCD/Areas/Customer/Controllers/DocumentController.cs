@@ -108,36 +108,11 @@ namespace MCD.Areas.Customer.Controllers
             //use the google drive class from the utilities
             var DriveService = await _GoogleDriveService.GetDriveService();
 
-
-            //to get the file id to grant access to the user
-            //first mcd folder which has all the user's folders
-            var folderRequest = DriveService.Files.List();
-            folderRequest.Q = "name = 'MCD' and mimeType = 'application/vnd.google-apps.folder' and trashed = false";
-            folderRequest.Fields = "files(id, name)";
-            var folderResponse = await folderRequest.ExecuteAsync();
-            var mcdFolder = folderResponse.Files.FirstOrDefault();
-            string mcdFolderId = mcdFolder.Id; // get the MCD folder ID
-
-            // get user's folder ID inside MCD
-            var userFolderRequest = DriveService.Files.List();
-            userFolderRequest.Q = $"name = '{userId}' and mimeType = 'application/vnd.google-apps.folder' and '{mcdFolderId}' in parents and trashed = false";
-            userFolderRequest.Fields = "files(id, name)";
-            var userFolderResponse = await userFolderRequest.ExecuteAsync();
-            var userFolder = userFolderResponse.Files.FirstOrDefault();
-            string userFolderId = userFolder.Id; // get the user folder ID
-
-            // finally get the file ID
-            var documentName = _UnitOfWork.Document.Get(u => u.Id == DocumentId).FileName;
-            var userFileToShareRequest = DriveService.Files.List();
-            userFileToShareRequest.Q = $"name = '{documentName}' and '{userFolderId}' in parents and trashed = false";
-            userFileToShareRequest.Fields = "files(id, name)";
-            var userFileToShareResponse = await userFileToShareRequest.ExecuteAsync();
-            var userFileToShare = userFileToShareResponse.Files.FirstOrDefault();
-
+            string googleDriveFileId = await GoogleDriveService.GetGoogleDriveFileId(DriveService, DocumentId, _UnitOfWork.Document.Get(u => u.Id == DocumentId).FileName, userId);
 
 
             //after getting the id of the file, in order to grant the user access to the file (making the file not accessible by someone isn't the owner or shared to user)
-            GoogleDriveService.GiveFilePermission(DriveService, "writer", userFileToShare.Id, SharedToUser.Email);
+            GoogleDriveService.GiveFilePermission(DriveService, "writer", googleDriveFileId, SharedToUser.Email);
 
             _UnitOfWork.AuditLog.Add(new AuditLog() //in all cases log the action
             {

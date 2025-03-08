@@ -12,8 +12,9 @@ function loadDataTable() {
                 render: function (data, type, row) {
                     //row to get other data from columns
                     let userId = row.sharedFromId; // in order to get the user id to get the path
+                    let documentId = row.documentId; // in order to get the document id to get the path
                     return `<div>
-                                <button onclick="openDocument('${userId}', '${data}')" class="btn btn-danger">
+                                <button onclick="openDocument('${userId}', '${documentId}', '${data}')" class="btn btn-danger">
                                     <i class="bi bi-file-earmark"></i> Access File
                                 </button>
                             </div>`;
@@ -41,9 +42,9 @@ function loadDataTable() {
     });
 }
 
-function openDocument(userId, fileName) { // a function to call inside render for getting html in the table
+function openDocument(userId, documentId, fileName) { // a function to call inside render for getting html in the table
     $.ajax({
-        url: `/Customer/home/GetDocument?userId=${userId}&fileName=${fileName}`, //avoid redundant code by using the same method
+        url: `/Customer/home/GetDocument?userId=${userId}&documentId=${documentId}&fileName=${fileName}`, //avoid redundant code by using the same method
         type: 'GET',
         success: function (response) {
             if (response && response.fileUrl) {
