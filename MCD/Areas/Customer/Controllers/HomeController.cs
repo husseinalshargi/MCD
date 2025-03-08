@@ -53,7 +53,7 @@ namespace MCD.Areas.Customer.Controllers
             return View(AccessManagementsList);
         }
         
-        public IActionResult RemoveAccess(int SharedAccessId, string FileName)
+        public async Task<IActionResult> RemoveAccess(int SharedAccessId, string FileName)
         {
             if (!User.Identity.IsAuthenticated) // in order to avoid null errors in the next step we will check first if the user is authenticated 
             {
@@ -70,6 +70,40 @@ namespace MCD.Areas.Customer.Controllers
                 TempData["error"] = "Error while removing access. Access might be removed already.";
                 return RedirectToAction(nameof(AccessManagements));
             }
+
+            //remove the access from the google drive
+            //first thing get the document id from google drive
+            //use the google drive class from the utilities
+            var DriveService = await _GoogleDriveService.GetDriveService();
+
+
+            //to get the file id to remove access from the user
+            //first mcd folder which has all the user's folders
+            var folderRequest = DriveService.Files.List();
+            folderRequest.Q = "name = 'MCD' and mimeType = 'application/vnd.google-apps.folder' and trashed = false";
+            folderRequest.Fields = "files(id, name)";
+            var folderResponse = await folderRequest.ExecuteAsync();
+            var mcdFolder = folderResponse.Files.FirstOrDefault();
+            string mcdFolderId = mcdFolder.Id; // get the MCD folder ID
+
+            // get user's folder ID inside MCD
+            var userFolderRequest = DriveService.Files.List();
+            userFolderRequest.Q = $"name = '{userId}' and mimeType = 'application/vnd.google-apps.folder' and '{mcdFolderId}' in parents and trashed = false";
+            userFolderRequest.Fields = "files(id, name)";
+            var userFolderResponse = await userFolderRequest.ExecuteAsync();
+            var userFolder = userFolderResponse.Files.FirstOrDefault();
+            string userFolderId = userFolder.Id; // get the user folder ID
+
+            // finally get the file ID
+            var documentName = _UnitOfWork.Document.Get(u => u.Id == sharedDocument.DocumentId).FileName;
+            var userFileToRemoveRequest = DriveService.Files.List();
+            userFileToRemoveRequest.Q = $"name = '{documentName}' and '{userFolderId}' in parents and trashed = false";
+            userFileToRemoveRequest.Fields = "files(id, name)";
+            var userFileToRemoveResponse = await userFileToRemoveRequest.ExecuteAsync();
+            var userFileToRemove = userFileToRemoveResponse.Files.FirstOrDefault();
+
+            GoogleDriveService.RemoveFilePermission(DriveService, userFileToRemove.Id, sharedDocument.SharedToEmail); //remove the access from the user
+
 
             //create log for the action
             _UnitOfWork.AuditLog.Add(new AuditLog() //in all cases log the action

@@ -5,7 +5,7 @@ $(document).ready(function () {
 
 function loadDataTable() {
     dataTable = $('#userManagementTable').DataTable({
-        "ajax": { url: '/user/getall' },
+        "ajax": { url: '/Employee/user/getall' },
         "columns": [
             { data: 'firstName', "width": "15%" },
             { data: 'lastName', "width": "15%" },
@@ -63,7 +63,7 @@ function loadDataTable() {
 function LockUnlock(id) {
     $.ajax({
         type: "POST",
-        url: '/User/LockUnlock',
+        url: '/Employee/user/LockUnlock',
         data: JSON.stringify(id),
         contentType: "application/json",
         success: function (data) {
@@ -79,7 +79,7 @@ function LockUnlock(id) {
 function changeUserRole(userId) { //to use the method in the controller to change the role by using post (not get as at isn't secure)
     $.ajax({
         type: "POST", 
-        url: `/user/ChangeRole?userId=${userId}`, //to use the method
+        url: `/Employee/user/ChangeRole?userId=${userId}`, //to use the method
         contentType: "application/json",
         success: function (response) {
             toastr.success("User role changed successfully!"); //to show a message to the user

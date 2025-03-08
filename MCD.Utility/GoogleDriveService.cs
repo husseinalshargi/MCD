@@ -18,9 +18,9 @@ namespace MCD.Utility
     public class GoogleDriveService
     {
         private readonly IConfiguration _config; //to use app settings for the apy key
-        public GoogleDriveService(IConfiguration config) 
+        public GoogleDriveService(IConfiguration config)
         {
-            _config = config; 
+            _config = config;
         }
         public async Task<DriveService> GetDriveService() //in order to interact with google drive
         {
@@ -54,7 +54,7 @@ namespace MCD.Utility
                         Scopes = scopes //the things that is we can do with user data
                     }),
                     "user", //that the request for the user
-                    new TokenResponse { RefreshToken = RefreshToken } 
+                    new TokenResponse { RefreshToken = RefreshToken }
                 );// the request
             }
             else //if the token isn't working then create a new one and request new authorization
@@ -89,6 +89,23 @@ namespace MCD.Utility
             var request = Service.Permissions.Create(Permission, FileId).Execute();
         }
 
+        public static async Task RemoveFilePermission(DriveService Service, string FileId, string UserEmail)
+        {
+            try
+            {
+                //get the list of only permissions
+                var request = Service.Permissions.List(FileId);
+                request.Fields = "permissions(id, emailAddress)"; // Get only permission ID and email
+                var response = await request.ExecuteAsync();
+                var permission = response.Permissions.FirstOrDefault(p => p.EmailAddress == UserEmail);  //find only the permission that we want to remove
+                //remove the permission
+                await Service.Permissions.Delete(FileId, permission.Id).ExecuteAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error removing permission: {ex.Message}");
 
+            }
+        }
     }
 }

@@ -5,7 +5,7 @@ $(document).ready(function () {
 
 function loadDataTable() {
     dataTable = $('#auditLogsTable').DataTable({
-        "ajax": { url: '/logs/getall' },
+        "ajax": { url: '/Customer/logs/getall' },
         "columns": [
             { data: 'userEmailAddress', "width": "25%" },
             { data: 'action', "width": "25%" },

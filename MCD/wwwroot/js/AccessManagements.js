@@ -5,7 +5,7 @@ $(document).ready(function () {
 
 function loadDataTable() {
     dataTable = $('#accessManagementsTable').DataTable({
-        "ajax": { url: '/home/getallaccessmanagements' },
+        "ajax": { url: '/Customer/home/getallaccessmanagements' },
         "columns": [
             {
                 data: 'document.fileName',
@@ -32,7 +32,7 @@ function loadDataTable() {
             {
                 data: 'id',
                 "render": function (data, type, row) { //the data is the id
-                    return `<a href="/Home/RemoveAccess?SharedAccessId=${data}&FileName=${row.document.fileName}" class="btn btn-warning mx-2"> <i class="bi bi-x-lg"></i> Remove </a>`
+                    return `<a href="/Customer/Home/RemoveAccess?SharedAccessId=${data}&FileName=${row.document.fileName}" class="btn btn-warning mx-2"> <i class="bi bi-x-lg"></i> Remove </a>`
 
                 },
                 "width": "15%"
@@ -43,7 +43,7 @@ function loadDataTable() {
 
 function openDocument(userId, fileName) { // a function to call inside render for getting html in the table
     $.ajax({
-        url: `/home/GetDocument?userId=${userId}&fileName=${fileName}`, //avoid redundant code by using the same method
+        url: `/Customer/home/GetDocument?userId=${userId}&fileName=${fileName}`, //avoid redundant code by using the same method
         type: 'GET',
         success: function (response) {
             if (response && response.fileUrl) {

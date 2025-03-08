@@ -5,7 +5,7 @@ $(document).ready(function () {
 
 function loadDataTable() {
     dataTable = $('#sharedDocumentsTable').DataTable({
-        "ajax": { url: '/document/getallshareddocuments' },
+        "ajax": { url: '/Customer/document/getallshareddocuments' },
         "columns": [
             {
                 data: 'document.fileName',
@@ -36,7 +36,7 @@ function loadDataTable() {
 
 function openDocument(userId, fileName) { // a function to call inside render for getting html in the table
     $.ajax({
-        url: `/home/GetDocument?userId=${userId}&fileName=${fileName}`, //avoid redundant code by using the same method
+        url: `/Customer/home/GetDocument?userId=${userId}&fileName=${fileName}`, //avoid redundant code by using the same method
         type: 'GET',
         success: function (response) {
             if (response && response.fileUrl) {

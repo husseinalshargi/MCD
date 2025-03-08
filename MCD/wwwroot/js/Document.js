@@ -5,7 +5,7 @@ $(document).ready(function () {
 
 function loadDataTable() {
     dataTable = $('#tblData').DataTable({
-        "ajax": { url: '/home/getall' },
+        "ajax": { url: '/Customer/home/getall' },
         "columns": [
             {
                 data: 'fileName',
@@ -42,7 +42,7 @@ function loadDataTable() {
             {
                 data: 'id',
                 "render": function (data) { //the data is the id
-                    return `<a href="/document/moreinfo/${data}" class="btn btn-info mx-2"> <i class="bi bi-info-circle"></i> Info </a>`
+                    return `<a href="/Customer/document/moreinfo/${data}" class="btn btn-info mx-2"> <i class="bi bi-info-circle"></i> Info </a>`
 
                     //here it will return a button for the entering the info page
                 },
@@ -54,7 +54,7 @@ function loadDataTable() {
 
 function openDocument(userId, fileName) { // a function to call inside render for getting html in the table
     $.ajax({
-        url: `/home/GetDocument?userId=${userId}&fileName=${fileName}`,
+        url: `/Customer/home/GetDocument?userId=${userId}&fileName=${fileName}`,
         type: 'GET',
         success: function (response) {
             if (response && response.fileUrl) {
