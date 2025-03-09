@@ -19,8 +19,6 @@ namespace MCD.Models
 
         [Required]
         public string LastName { get; set; }
-        [Required]
-        public string PhoneNumber {  get; set; }
 
         [NotMapped] //do not create this column in the database
         public string Role { get; set; }
