@@ -59,17 +59,23 @@ namespace MCD.Areas.Identity.Pages.Account.Manage
             [Phone]
             [Display(Name = "Phone number")]
             public string PhoneNumber { get; set; }
+            // here we are loading the user's information such as First Name, Last Name, but Phone Number is already in the default identityuser class
+            public string FirstName { get; set; }
+            public string LastName { get; set; }
         }
 
         private async Task LoadAsync(ApplicationUser user)
         {
             var userName = await _userManager.GetUserNameAsync(user);
             var phoneNumber = await _userManager.GetPhoneNumberAsync(user);
-
+            var firstName = user.FirstName;
+            var lastName = user.LastName;
             Username = userName;
 
             Input = new InputModel
             {
+                FirstName = firstName,
+                LastName = lastName,
                 PhoneNumber = phoneNumber
             };
         }
@@ -110,8 +116,33 @@ namespace MCD.Areas.Identity.Pages.Account.Manage
                     return RedirectToPage();
                 }
             }
+            // setting the first name and last name if they are different from the user's current first name and last name
+            bool isUpdated = false;
 
-            await _signInManager.RefreshSignInAsync(user);
+            if (Input.FirstName != user.FirstName)
+            {
+                user.FirstName = Input.FirstName;
+                isUpdated = true;
+            }
+
+            if (Input.LastName != user.LastName)
+            {
+                user.LastName = Input.LastName;
+                isUpdated = true;
+            }
+
+            // if the first name or last name is updated, then update the user in the database
+            if (isUpdated)
+            {
+                var updateResult = await _userManager.UpdateAsync(user);
+                if (!updateResult.Succeeded)
+                {
+                    StatusMessage = "Error updating profile.";
+                    return RedirectToPage();
+                }
+            }
+
+            await _signInManager.RefreshSignInAsync(user); //It only refreshes the user's authentication, but it doesn't save user profile changes.
             StatusMessage = "Your profile has been updated";
             return RedirectToPage();
         }

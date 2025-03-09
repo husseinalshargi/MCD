@@ -16,15 +16,17 @@
                 <label asp-for="Username" class="form-label"></label>
             </div>
             <div class="form-floating mb-3">
-                <input asp-for="Username" class="form-control" placeholder="Please Enter your first name."/>
-                <label asp-for="Username" class="form-label"></label>
+                <input asp-for="Input.FirstName" class="form-control" placeholder="Please Enter your first name."/>
+                <label asp-for="Input.FirstName" class="form-label"></label>
             </div>
             <div class="form-floating mb-3">
-                <input asp-for="Username" class="form-control" placeholder="Please enter your last name."/>
-                <label asp-for="Username" class="form-label"></label>
+                <input asp-for="Input.LastName" class="form-control" placeholder="Please enter your last name." />
+                <label asp-for="Input.LastName" class="form-label"></label>
             </div>
             <div class="form-floating mb-3">
-                <input asp-for="Input.PhoneNumber" class="form-control" placeholder="Please enter your phone number."/>
+                <input asp-for="Input.PhoneNumber" class="form-control" placeholder="Please enter your phone number."
+                       id="phoneNumberInput"
+                       required />
                 <label asp-for="Input.PhoneNumber" class="form-label"></label>
                 <span asp-validation-for="Input.PhoneNumber" class="text-danger"></span>
             </div>
@@ -35,4 +37,17 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        $(document).ready(function () {
+            $("#profile-form").submit(function (event) { //when submitting the form
+                var phoneNumber = $("#phoneNumberInput").val();
+                var phonePattern = /^05\d{8}$/; // Regex for 10-digit phone numbers starting with "05"
+
+                if (!phonePattern.test(phoneNumber)) {
+                    event.preventDefault(); // Stop form submission
+                    toastr.error("Invalid phone number format! Please enter 05XXXXXXXX");
+                }
+            });
+        });
+    </script>
 }
