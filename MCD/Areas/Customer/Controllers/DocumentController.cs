@@ -33,7 +33,13 @@ namespace MCD.Areas.Customer.Controllers
             var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
 
             //in order to return the content of the file we should first retrieve the file it self
-            Document document = _UnitOfWork.Document.Get(u => u.Id == id, includeProperties:"Category,ApplicationUser"); //get the document with the document id that are passed in the documents page (more info)
+            Document document = _UnitOfWork.Document.Get(u => u.Id == id && u.ApplicationUserId == userId, includeProperties:"Category,ApplicationUser"); //get the document with the document id that are passed in the documents page (more info)
+
+            if (document == null) //if the document not found
+            {
+                TempData["error"] = "Document not found.";
+                return RedirectToAction("Document", "Home");
+            }
 
             MoreInfoVM moreInfoVM = new MoreInfoVM()
             {
