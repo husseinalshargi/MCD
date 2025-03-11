@@ -16,7 +16,7 @@
 
 <div class="row">
     <div class="col-md-4">
-        <form asp-page-handler="Confirmation" asp-route-returnUrl="@Model.ReturnUrl" method="post">
+        <form id="confirmationForm" asp-page-handler="Confirmation" asp-route-returnUrl="@Model.ReturnUrl" method="post">
             <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
             <div class="form-floating mb-3">
                 <input asp-for="Input.Email" class="form-control" autocomplete="email" placeholder="Please enter your email." />
@@ -34,7 +34,9 @@
                 <span asp-validation-for="Input.LastName" class="text-danger"></span>
             </div>
             <div class="form-floating mb-3">
-                <input asp-for="Input.PhoneNumber" class="form-control" autocomplete="tel" placeholder="Please enter your phone number." type="tel" inputmode="numeric" pattern="[0-9]*"/>
+                <input asp-for="Input.PhoneNumber" class="form-control" autocomplete="tel" placeholder="Please enter your phone number." type="tel" inputmode="numeric" 
+                id="phoneNumberInput"
+                       required />
                 <label asp-for="Input.PhoneNumber" class="form-label"></label>
                 <span asp-validation-for="Input.PhoneNumber" class="text-danger"></span>
             </div>
@@ -45,4 +47,18 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        $(document).ready(function () {
+            $("#confirmationForm").submit(function (event) { //when submitting the form
+                var phoneNumber = $("#phoneNumberInput").val();
+                var phonePattern = /^05\d{8}$/; // Regex for 10-digit phone numbers starting with "05"
+
+                if (!phonePattern.test(phoneNumber)) {
+                    event.preventDefault(); // Stop form submission
+                    toastr.error("Invalid phone number format! Please enter 05XXXXXXXX");
+                }
+            });
+        });
+    </script>
 }
