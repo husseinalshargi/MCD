@@ -127,9 +127,9 @@ namespace MCD.Areas.Identity.Pages.Account.Manage
                 await _emailSender.SendEmailAsync(
                     Input.NewEmail,
                     "Confirm your email",
-                    $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
+                    $"Dear {user.FirstName},\n\nThank you for signing up with MyCleverDoc! To complete your registration, Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.\n\nIf you did not create an account with MyCleverDoc, please ignore this message.");
 
-                StatusMessage = "Confirmation link to change email sent. Please check your email.";
+                StatusMessage = "Confirmation link to change email sent. Please check your email. (check spam folder if not found in the inbox)";
                 return RedirectToPage();
             }
 
@@ -163,7 +163,7 @@ namespace MCD.Areas.Identity.Pages.Account.Manage
             await _emailSender.SendEmailAsync(
                 email,
                 "Confirm your email",
-                $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
+                $"Dear {user.FirstName},\n\nThank you for signing up with MyCleverDoc! To complete your registration, Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.\n\nIf you did not create an account with MyCleverDoc, please ignore this message.");
 
             StatusMessage = "Verification email sent. Please check your email.";
             return RedirectToPage();
