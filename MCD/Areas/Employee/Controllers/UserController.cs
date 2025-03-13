@@ -11,8 +11,8 @@ using System.Threading.Tasks;
 
 namespace MCD.Areas.Employee.Controllers
 {
-    [Area("Admin")] // area of the controller
-    [Authorize(Roles = SD.Role_Admin)] // specify the role of the user that can only access this controller
+    [Area("Employee")] // area of the controller
+    [Authorize(Roles = SD.Role_Employee)] // specify the role of the user that can only access this controller
     //also we can place it above an action to specify the role of the user that can access this action
     public class UserController : Controller
     {

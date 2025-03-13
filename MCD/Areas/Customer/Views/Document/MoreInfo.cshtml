@@ -18,9 +18,7 @@
                 <th>Category</th>
                 <th>Upload Date</th>
                 <th>Update Date</th>
-                <th>Summarize</th>
                 <th>Update</th>
-                <th>Delete</th>
                 <th>AI Task Status</th>
             </tr>
         </thead>
@@ -62,10 +60,8 @@
                 </td>
                 <td .disbaled>@Model.Document.UploadDate</td>
                 <td .disbaled>@Model.Document.UpdateDate</td>
-                <!-- buttons with name="action" to distinguish in order to use a variable called action in the controller -->
-                <td><button type="submit" name="action" value="Summarize" class="btn btn-secondary">Summarize</button></td>
-                <td><button type="submit" name="action" value="Update" class="btn btn-secondary">Update</button></td>
-                <td><button type="submit" name="action" value="Delete" class="btn btn-secondary">Delete</button></td>
+
+                <td><button type="submit" class="btn btn-secondary">Update</button></td>
                 <td>Currently not available</td>
             </tr>
             <tr>
@@ -74,12 +70,21 @@
                 <td></td>
                 <td></td>
                 <td>
-                    <input name="NewCategory" id="NewCategoryInput" type="text" class="form-control border-0 shadow" maxlength="30" required placeholder="Enter New Category" style="display:none;">
+                    <input name="NewCategory" id="NewCategoryInput" type="text" class="form-control border-0 shadow" maxlength="30" placeholder="Enter New Category" style="display:none;">
                 </td>
             </tr>
         </tbody>
     </table>
 </form>
+
+<form method="post" asp-action="DeleteDocument" enctype="multipart/form-data">
+    <!-- hidden field to pass ID without the user input it-->
+    <input type="hidden" name="DocumentID" value="@Model.Document.Id" />
+    <div class="col text-center button-container">
+        <button type="submit" class="btn btn-danger text-center">Delete</button>
+    </div>
+</form>
+
 <!-- the action name is uploadshareddocument -->
 <form method="post" asp-action="UploadSharedDocument" enctype="multipart/form-data">
     <hr class="mb-4">
@@ -117,13 +122,20 @@
 </form>
 <div class="text-center fixed-bottom-center" style="margin-bottom: 60px;">
     <!-- to place the back button always down in the center in top of the bottom header-->
-    <a href="/home/document" class="btn btn-info mx-2"> <i class="bi bi-arrow-return-left"></i> Back </a>
+    <a href="/customer/home/document" class="btn btn-info mx-2"> <i class="bi bi-arrow-return-left"></i> Back </a>
 </div>
 
 <hr class="mb-4">
 
 <div class="sumPart">
     <h2>Summarization</h2>
+    <form method="post" asp-action="SummarizeDocument" enctype="multipart/form-data">
+        <!-- hidden field to pass ID without the user input it-->
+        <input type="hidden" name="DocumentID" value="@Model.Document.Id" />
+        <div class="col text-center button-container">
+            <button type="submit" class="btn btn-secondary">Summarize</button>
+        </div>
+    </form>
     <p id="summarizationBox">Here we plug in the summarization (maybe we'll edit the tag later if we want to allow the user to change some of the text)</p>
 </div>
 

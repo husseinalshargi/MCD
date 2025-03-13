@@ -391,10 +391,6 @@ namespace MCD.Areas.Customer.Controllers
 
             List<SharedDocument> SharedDocumentList = _UnitOfWork.SharedDocument.GetAll(u => u.SharedFromId == userId,
                 includeProperties: "Document").ToList();
-            if (SharedDocumentList == null || !SharedDocumentList.Any()) //if there aren't any shared documents
-            {
-                TempData["error"] = "No shared documents found.";
-            }
             return Json(new { data = SharedDocumentList });
 
         }

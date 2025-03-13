@@ -16,7 +16,7 @@ namespace MCD.Areas.Customer.Controllers
     {
         private readonly IUnitOfWork _UnitOfWork;
         private readonly GoogleDriveService _GoogleDriveService;
-        public DocumentController (IUnitOfWork unitOfWork, GoogleDriveService googleDriveService)
+        public DocumentController(IUnitOfWork unitOfWork, GoogleDriveService googleDriveService)
         {
             _UnitOfWork = unitOfWork;
             _GoogleDriveService = googleDriveService;
@@ -33,7 +33,7 @@ namespace MCD.Areas.Customer.Controllers
             var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
 
             //in order to return the content of the file we should first retrieve the file it self
-            Document document = _UnitOfWork.Document.Get(u => u.Id == id && u.ApplicationUserId == userId, includeProperties:"Category,ApplicationUser"); //get the document with the document id that are passed in the documents page (more info)
+            Document document = _UnitOfWork.Document.Get(u => u.Id == id && u.ApplicationUserId == userId, includeProperties: "Category,ApplicationUser"); //get the document with the document id that are passed in the documents page (more info)
 
             if (document == null) //if the document not found
             {
@@ -53,7 +53,7 @@ namespace MCD.Areas.Customer.Controllers
         public IActionResult SharedDocuments() //to display documents that are shared from other users 
         {
             //check if the user is authenticated to avoid errors
-            if (!User.Identity.IsAuthenticated) 
+            if (!User.Identity.IsAuthenticated)
             {
                 return RedirectToAction("Privacy", "Home");
             }
@@ -84,7 +84,7 @@ namespace MCD.Areas.Customer.Controllers
 
 
             var SharedToUser = _UnitOfWork.ApplicationUser.Get(u => u.Email.ToLower() == SharedToEmail.ToLower());
-            if(SharedToUser == null)
+            if (SharedToUser == null)
             {
                 TempData["error"] = "User with this email does not exist.";
                 return RedirectToAction("MoreInfo", new { id = DocumentId }); //return to the function with the document id
@@ -102,10 +102,10 @@ namespace MCD.Areas.Customer.Controllers
 
             _UnitOfWork.SharedDocument.Add(new SharedDocument()
             {
-                SharedToEmail= SharedToUser.Email.ToLower(),
-                SharedFromId =userId,
-                DocumentId=DocumentId,
-                SharedAt=DateTime.Now
+                SharedToEmail = SharedToUser.Email.ToLower(),
+                SharedFromId = userId,
+                DocumentId = DocumentId,
+                SharedAt = DateTime.Now
             });
             _UnitOfWork.Save(); //save changes after adding the shared doc
 
@@ -125,7 +125,7 @@ namespace MCD.Areas.Customer.Controllers
                 ApplicationUserId = userId,
                 userEmailAddress = _UnitOfWork.ApplicationUser.Get(u => u.Id == userId).Email,
                 Action = $"Gave ${SharedToUser.Email.ToLower()} Access",
-                FileName = _UnitOfWork.Document.Get(u=>u.Id == DocumentId).FileName,
+                FileName = _UnitOfWork.Document.Get(u => u.Id == DocumentId).FileName,
                 ActionDate = DateTime.Now
             });
             _UnitOfWork.Save(); //save the changes after adding the log
@@ -157,9 +157,17 @@ namespace MCD.Areas.Customer.Controllers
             var document = _UnitOfWork.Document.Get(u => u.Id == DocumentID);
             if (document == null) //if the document not found
             {
-                TempData["error"] = "Document not found.";
+                //TempData["error"] = "Document not found.";
                 return RedirectToAction("Index", "Home");
             }
+
+            //do not allow the update if the parameters is the same as the current document
+            if (document.Title == Title && document.CategoryId.ToString() == Category)
+            {
+                TempData["error"] = "No changes were made.";
+                return RedirectToAction("MoreInfo", new { id = document.Id });
+            }
+
 
             _UnitOfWork.AuditLog.Add(new AuditLog() //in all cases log the action
             {
@@ -200,7 +208,7 @@ namespace MCD.Areas.Customer.Controllers
             {
                 // Get the old category ID
                 var oldCategory = _UnitOfWork.Category.Get(u => u.Id == Convert.ToInt32(Category) && u.ApplicationUserId == userId);
-                if (oldCategory != null) 
+                if (oldCategory != null)
                 {
                     CategoryId = oldCategory.Id;
                 }
@@ -213,55 +221,83 @@ namespace MCD.Areas.Customer.Controllers
 
 
 
-            //here we will check the action that the user want to do on the document and do using a switch
-            switch (action)
+            document.Title = Title;
+            document.CategoryId = CategoryId; //it will be automatically bounded to the category obj
+            document.UpdateDate = DateTime.Now;
+            _UnitOfWork.Save();
+            TempData["success"] = "Document updated successfully!";
+
+            return RedirectToAction("MoreInfo", new { id = document.Id});
+        }
+
+        [HttpPost]
+        public IActionResult DeleteDocument(int DocumentId)
+        {
+            //first thing make sure that the user are authenticated
+            if (!User.Identity.IsAuthenticated)
             {
-                case "Summarize": //summarizing logic
-                    return RedirectToAction("MoreInfo"); 
+                return RedirectToAction("Privacy", "Home"); //home controller if user aren't authenticated
+            }
+            //in order to claim the user id (the one that enters the page)
+            var claimsIdentity = (ClaimsIdentity)User.Identity;
+            var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
 
-                case "Delete": //delete the document
-                    _UnitOfWork.Document.Remove(document);
-                    _UnitOfWork.Save();
-                    TempData["success"] = "Document deleted successfully!";
-                    return RedirectToAction("Document", "Home");
+            var document = _UnitOfWork.Document.Get(u => u.Id == DocumentId);
+            if (document.ApplicationUserId != userId)
+            {
+                TempData["error"] = "You are not authorized to delete this document.";
+                return RedirectToAction("Document", "Home");
+            }
 
-                case "Update": //update the document
-                    document.Title = Title;
-                    document.CategoryId = CategoryId; //it will be automatically bounded to the category obj
-                    document.UpdateDate = DateTime.Now;
-                    _UnitOfWork.Save();
-                    TempData["success"] = "Document updated successfully!";
-                    return RedirectToAction("Document", "Home");
+            //log action before deleting the document to get its name
 
-                default: //in case of something goes wrong
-                    TempData["error"] = "Invalid action.";
-                    break;
+            _UnitOfWork.AuditLog.Add(new AuditLog() // log the action
+            {
+                ApplicationUserId = userId,
+                userEmailAddress = _UnitOfWork.ApplicationUser.Get(u => u.Id == userId).Email,
+                Action = $"Deleted document",
+                FileName = document.FileName,
+                ActionDate = DateTime.Now
+            });
+            _UnitOfWork.Save(); //save the changes after adding the log
+
+
+
+            _UnitOfWork.Document.Remove(document);
+            _UnitOfWork.Save();
+            TempData["success"] = "Document deleted successfully!";
+
+
+            return RedirectToAction("Document", "Home");
+
+
             }
 
 
-
-
-            return RedirectToAction("MoreInfo"); 
-        }
-
-
-        #region api calls
-        [HttpGet]
-        public IActionResult GetallSharedDocuments() //to get all shared documents in datatables API
+        public IActionResult SummarizeDocument(int DocumentId)
         {
-            //to get the user id to get all shared documents to him by using his email
-            var claimsIdentity = (ClaimsIdentity)User.Identity;
-            var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
-            var SharedToUser = _UnitOfWork.ApplicationUser.Get(u => u.Id == userId); //get the user by his id to get all shared documents to him using his email (shared to property)
-
-
-            List<SharedDocument> SharedDocumentList = _UnitOfWork.SharedDocument.GetAll(u => u.SharedToEmail.ToLower() == SharedToUser.Email.ToLower(),
-                includeProperties: "Document,Document.ApplicationUser").ToList();
-            return Json(new { data = SharedDocumentList });
-
+            TempData["error"] = "This feature is not available yet.";
+            return RedirectToAction("Index", "Home");
         }
 
-        #endregion
 
+            #region api calls
+            [HttpGet]
+            public IActionResult GetallSharedDocuments() //to get all shared documents in datatables API
+            {
+                //to get the user id to get all shared documents to him by using his email
+                var claimsIdentity = (ClaimsIdentity)User.Identity;
+                var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
+                var SharedToUser = _UnitOfWork.ApplicationUser.Get(u => u.Id == userId); //get the user by his id to get all shared documents to him using his email (shared to property)
+
+
+                List<SharedDocument> SharedDocumentList = _UnitOfWork.SharedDocument.GetAll(u => u.SharedToEmail.ToLower() == SharedToUser.Email.ToLower(),
+                    includeProperties: "Document,Document.ApplicationUser").ToList();
+                return Json(new { data = SharedDocumentList });
+
+            }
+
+            #endregion
+
+        }
     }
-}
