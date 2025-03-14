@@ -32,7 +32,15 @@ namespace MCD.Areas.Customer.Controllers
 
         public IActionResult Index()
         {
-            return View();
+            if (User.Identity.IsAuthenticated) // in order to avoid null errors in the next step we will check first if the user is authenticated
+            {
+                //in order to claim the user id (the one that enters the page)
+                var claimsIdentity = (ClaimsIdentity)User.Identity;
+                var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
+                var currentUser = _UnitOfWork.ApplicationUser.Get(u => u.Id == userId);
+                return View(currentUser);
+            }
+            return RedirectToAction("Privacy");
         }
 
 
@@ -52,7 +60,7 @@ namespace MCD.Areas.Customer.Controllers
 
             return View(AccessManagementsList);
         }
-        
+
         public async Task<IActionResult> RemoveAccess(int SharedAccessId, string FileName)
         {
             if (!User.Identity.IsAuthenticated) // in order to avoid null errors in the next step we will check first if the user is authenticated 
@@ -101,12 +109,12 @@ namespace MCD.Areas.Customer.Controllers
             return RedirectToAction(nameof(AccessManagements));
         }
 
-    
+
 
         public IActionResult AuditLogs()
         {
             return View();
-        }      
+        }
         public IActionResult Document()
         {
             if (!User.Identity.IsAuthenticated) // in order to avoid null errors in the next step we will check first if the user is authenticated 
@@ -146,9 +154,9 @@ namespace MCD.Areas.Customer.Controllers
                     return BadRequest("No file selected."); //as the user did not upload a file
                 }
                 // in order to write it in the description
-                string userEmail = _UnitOfWork.ApplicationUser.Get(u=>u.Id == userId).Email; // to get the user email
+                string userEmail = _UnitOfWork.ApplicationUser.Get(u => u.Id == userId).Email; // to get the user email
 
-                
+
                 //use the google drive class from the utilities
                 var DriveService = await _GoogleDriveService.GetDriveService(); // await because it is defined like this 
 
@@ -221,7 +229,7 @@ namespace MCD.Areas.Customer.Controllers
                 _UnitOfWork.Document.Add(document); //add it to the db
                 _UnitOfWork.Save();
 
-               var newDocumentId = document.Id; //to get the id of the document that was just created to add it to the document name in google drive
+                var newDocumentId = document.Id; //to get the id of the document that was just created to add it to the document name in google drive
 
                 var FileMetaData = new Google.Apis.Drive.v3.Data.File()
                 {
@@ -237,7 +245,7 @@ namespace MCD.Areas.Customer.Controllers
                     var request = DriveService.Files.Create(FileMetaData, stream, model.DocumentFile.ContentType);
                     request.Fields = "id, webViewLink"; //  file id and link
                     var uploadedFile = await request.UploadAsync();
-                    
+
                     if (uploadedFile.Status != Google.Apis.Upload.UploadStatus.Completed) //if there is an error with the file uploading
                     {
                         return StatusCode(500, "Error uploading file to Google Drive.");
@@ -294,8 +302,8 @@ namespace MCD.Areas.Customer.Controllers
             var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
 
             List<Document> DocumentList = _UnitOfWork.Document.GetAll(includeProperties: "Category").Where(u => u.ApplicationUserId == userId).ToList();
-                        
-            return Json(new {data =  DocumentList});
+
+            return Json(new { data = DocumentList });
         }
         [HttpGet]
         public async Task<IActionResult> GetDocument(string userId, int documentId, string fileName)
@@ -310,8 +318,9 @@ namespace MCD.Areas.Customer.Controllers
                 includeProperties: "Document");
             if (currentUserId != userId) //if the user is not the same as the one who uploaded the file
             {
-                if( SharedDocument == null) { // if the document is not shared with the user
-                return Unauthorized("Access denied.");
+                if (SharedDocument == null)
+                { // if the document is not shared with the user
+                    return Unauthorized("Access denied.");
                 }
             }
 
@@ -322,7 +331,7 @@ namespace MCD.Areas.Customer.Controllers
             var request = driveService.Files.List(); //list of all the files
             request.Q = $"name = 'MCD' and mimeType = 'application/vnd.google-apps.folder' and trashed = false";// search for a folder with the name of MCD
             request.Fields = "files(id)"; // get MCd folder Id
-            var response = await request.ExecuteAsync(); 
+            var response = await request.ExecuteAsync();
             var MCDFolder = response.Files.FirstOrDefault(); // get the first matching folder which is the target
             string mcdFolderId = MCDFolder.Id; //to get the value of the id
 
@@ -350,7 +359,7 @@ namespace MCD.Areas.Customer.Controllers
 
             if (file == null)
             {
-                TempData["error"] ="File not found in the user's folder."; //for the user
+                TempData["error"] = "File not found in the user's folder."; //for the user
                 return NotFound("File not found in the user's folder."); //for the developer
             }
 
@@ -378,7 +387,7 @@ namespace MCD.Areas.Customer.Controllers
             fileUrl = file.WebViewLink;
 
 
-            return Json(new {fileUrl}); // in order to see it without needing to download
+            return Json(new { fileUrl }); // in order to see it without needing to download
 
         }
 
@@ -399,4 +408,4 @@ namespace MCD.Areas.Customer.Controllers
 
 
     }
-    }
+}

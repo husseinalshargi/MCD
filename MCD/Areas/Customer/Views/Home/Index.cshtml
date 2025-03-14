@@ -1,9 +1,17 @@
-﻿
+﻿@model ApplicationUser
 
 
 
 <body>
     <div class="message-container">
-        <p>For documents, go to the Documents tab.</p>
+        @if (!Model.EmailConfirmed)
+        {
+            <div class="alert alert-warning alert-dismissible fade show mt-3 text-center" role="alert">
+                <strong>Warning!</strong> Your email is not confirmed.
+                <a href="/Identity/Account/Manage/Email" class="alert-link">Click here</a> to send the confirmation email.
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+        <h1 class="mt-4">For documents, go to the Documents tab.</h1>
     </div>
 </body>

@@ -1,6 +1,6 @@
 @using MCD.Models.ViewModels
 @model MoreInfoVM
-<h1>More info about the document</h1>
+<h2>More info about the document</h2>
 
 
 <form method="post" asp-action="AdjustDocument" enctype="multipart/form-data">
@@ -11,7 +11,6 @@
     <table id="moreInfoTable" class="moreInfoTable" style="width:100%">
         <thead id="moreInfoHead">
             <tr>
-                <th>Document</th>
                 <th>Author</th>
                 <th>File Name</th>
                 <th>Title</th>
@@ -25,11 +24,6 @@
         <tbody id="moreInfoBody">
             <tr class="spacer-row"><td colspan="3"></td></tr>
             <tr>
-                <td>
-                    <button onclick="openDocument('@Model.Document.ApplicationUserId', '@Model.Document.Id', '@Model.Document.FileName')" class="btn btn-secondary">
-                        <i class="bi bi-file-earmark"></i> Open Document
-                    </button>
-                </td>
                 <td .disabled>@Model.Document.ApplicationUser.Email</td>
                 <td .disbaled>@Model.Document.FileName</td>
                 <td>
@@ -76,19 +70,21 @@
         </tbody>
     </table>
 </form>
-
-<form method="post" asp-action="DeleteDocument" enctype="multipart/form-data">
-    <!-- hidden field to pass ID without the user input it-->
-    <input type="hidden" name="DocumentID" value="@Model.Document.Id" />
-    <div class="col text-center button-container">
+<div class="col text-center d-flex justify-content-center align-items-center gap-2 mt-2">
+    <button onclick="openDocument('@Model.Document.ApplicationUserId', '@Model.Document.Id', '@Model.Document.FileName')" class="btn btn-secondary">
+        <i class="bi bi-file-earmark"></i> Open Document
+    </button>
+    <form method="post" asp-action="DeleteDocument" enctype="multipart/form-data">
+        <!-- hidden field to pass ID without the user input it-->
+        <input type="hidden" name="DocumentID" value="@Model.Document.Id" />
         <button type="submit" class="btn btn-danger text-center">Delete</button>
-    </div>
-</form>
+    </form>
+</div>
 
 <!-- the action name is uploadshareddocument -->
 <form method="post" asp-action="UploadSharedDocument" enctype="multipart/form-data">
     <hr class="mb-4">
-
+    <h2>Share Document</h2>
     <!-- hidden field to pass DocumentID without the user input it-->
     <input type="hidden" name="DocumentID" value="@Model.Document.Id" />
 

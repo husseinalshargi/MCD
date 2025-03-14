@@ -261,6 +261,24 @@ namespace MCD.Areas.Customer.Controllers
             });
             _UnitOfWork.Save(); //save the changes after adding the log
 
+            //before deleting the document we should delete the shared documents that are related to it to remove access first
+            var sharedDocuments = _UnitOfWork.SharedDocument.GetAll(u => u.DocumentId == DocumentId);
+            foreach (var sharedDocument in sharedDocuments) //remove each shared document found of the same document id
+            {
+                _UnitOfWork.AuditLog.Add(new AuditLog() // log the action
+                {
+                    ApplicationUserId = _UnitOfWork.ApplicationUser.Get(u=>u.Email.ToLower() == sharedDocument.SharedToEmail.ToLower()).Id, //the user that has access
+                    userEmailAddress = _UnitOfWork.ApplicationUser.Get(u => u.Id == userId).Email, //the user that deleted the document which will remove the access
+                    Action = $"Removed access",
+                    FileName = sharedDocument.Document.FileName,
+                    ActionDate = DateTime.Now
+                });
+                _UnitOfWork.Save();
+                _UnitOfWork.SharedDocument.Remove(sharedDocument);
+                _UnitOfWork.Save();
+            }
+
+
 
 
             _UnitOfWork.Document.Remove(document);
