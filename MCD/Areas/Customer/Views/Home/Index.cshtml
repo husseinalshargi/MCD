@@ -12,6 +12,14 @@
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         }
+        @if (Model.PasswordHash == null)
+        {
+            <div class="alert alert-warning alert-dismissible fade show mt-3 text-center" role="alert">
+                <strong>Warning!</strong> You don't have a password.
+                <a href="/Identity/Account/Manage/SetPassword" class="alert-link">Click here</a> to create a password for MCD account.
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
         <h1 class="mt-4">For documents, go to the Documents tab.</h1>
     </div>
 </body>
