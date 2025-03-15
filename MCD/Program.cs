@@ -46,6 +46,7 @@ builder.Services.AddAuthentication().AddCookie().AddGoogle(option =>
     option.ClientId = GoogleAuth["client_id"];
     option.ClientSecret = GoogleAuth["client_secret"];
     option.CallbackPath = "/signin-google";
+    option.AccessDeniedPath = "/Identity/Account/Login"; //if the user cancels the login return to login page
 
     // so that it refreshes the token each time it is expired
     option.AccessType = "offline";
