@@ -38,7 +38,16 @@ namespace MCD.Areas.Customer.Controllers
                 var claimsIdentity = (ClaimsIdentity)User.Identity;
                 var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
                 var currentUser = _UnitOfWork.ApplicationUser.Get(u => u.Id == userId);
-                return View(currentUser);
+
+                var homePageVM = new HomePageVM()
+                {
+                    RecentDocuments = _UnitOfWork.Document.GetAll(u => u.ApplicationUserId == currentUser.Id).OrderByDescending(d => d.UpdateDate).ToList(),
+                    CurrentUser = currentUser
+                };
+
+
+
+                return View(homePageVM);
             }
             return RedirectToAction("Privacy");
         }

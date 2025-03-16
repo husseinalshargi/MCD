@@ -1,10 +1,11 @@
-﻿@model ApplicationUser
+﻿@using MCD.Models.ViewModels
+@model HomePageVM
 
 
 
 <body>
     <div class="message-container">
-        @if (!Model.EmailConfirmed)
+        @if (!Model.CurrentUser.EmailConfirmed)
         {
             <div class="alert alert-warning alert-dismissible fade show mt-3 text-center" role="alert">
                 <strong>Warning!</strong> Your email is not confirmed.
@@ -12,7 +13,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         }
-        @if (Model.PasswordHash == null)
+        @if (Model.CurrentUser.PasswordHash == null)
         {
             <div class="alert alert-warning alert-dismissible fade show mt-3 text-center" role="alert">
                 <strong>Warning!</strong> You don't have a password.
@@ -20,6 +21,49 @@
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         }
-        <h1 class="mt-4">For documents, go to the Documents tab.</h1>
     </div>
+    <h1 class="mt-4">Welcome to MCD!</h1>
+    <h4 class="mt-4">For all documents, go to the Documents tab.</h4>
+    <div class="container mt-5">
+        <h5 class="text-center mb-2">Most recent updated documents</h5>
+        <div class="row">
+            @for (int i = 0; i < Model.RecentDocuments.Count; i++) //to show the most recent 12 documents
+            {
+                <div class="col text-center mb-2">
+                    <button onclick="openDocument('@Model.RecentDocuments[i].ApplicationUserId', '@Model.RecentDocuments[i].Id', '@Model.RecentDocuments[i].FileName')" class="btn btn-primary w-100">@Model.RecentDocuments[i].FileName</button> @*show documents as buttons 3 at each row*@
+                </div>
+
+                @if ((i + 1) % 4 == 0)
+                {
+                    @:</div><div class="row"> @*start a new row after 4 buttons*@
+                }
+                if (i == 7) //to show only 12 documents then break
+                {
+                    break;
+                }
+            }
+    </div>
+</div>
 </body>
+
+@section scripts {
+    <script>
+            function openDocument(userId, documentId, fileName) { // a function to call inside render for getting html in the table
+            $.ajax({
+                url: `/Customer/home/GetDocument?userId=${userId}&documentId=${documentId}&fileName=${fileName}`, //in order to use the same fumction in the home controller to open the document (to avoid duplication)
+                type: 'GET',
+                success: function (response) {
+                    if (response && response.fileUrl) {
+                        window.open(response.fileUrl, '_blank'); // Open in new tab -> _self to open in the same page
+                    } else {
+                        alert("Error: Unable to fetch the document.");
+                    }
+                },
+                error: function (xhr) {
+                    console.log("AJAX Error:", xhr.responseText);
+                    alert("Error: Could not open the document.");
+                }
+            });
+        }
+    </script>
+}
