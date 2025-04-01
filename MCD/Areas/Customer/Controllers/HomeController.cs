@@ -372,7 +372,6 @@ namespace MCD.Areas.Customer.Controllers
                 return NotFound("File not found in the user's folder."); //for the developer
             }
 
-            //var filePath = Path.Combine(_StoragePath, userId, fileName); // the path of the document
 
             // to download the file using its ID
             //var getRequest = driveService.Files.Get(file.Id);

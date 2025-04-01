@@ -55,7 +55,8 @@ builder.Services.AddAuthentication().AddCookie().AddGoogle(option =>
 
 //to add google drive service
 builder.Services.AddSingleton<GoogleDriveService>();
-
+//add the AI functions
+builder.Services.AddScoped<MCDAIFunctions>();
 
 builder.Services.AddRazorPages(); //so that it handles razor pages where there is only area-page
 //such as in authentication

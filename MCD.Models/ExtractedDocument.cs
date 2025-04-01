@@ -19,12 +19,10 @@ namespace MCD.Models
         public int DocumentId { get; set; }
         [ForeignKey("DocumentId")]
         [ValidateNever] //because it isn't entered by the user
-        public required Document Document { get; set; } //for adding a forgein key we need to connect it with another table 
+        public Document Document { get; set; } //for adding a forgein key we need to connect it with another table 
 
         [Required]
         public required string ExtractedFileName { get; set; }
-
-        public string? Language { get; set; }
 
     }
 }

@@ -1,5 +1,4 @@
-﻿using Google.Apis.Drive.v3;
-using MCD.DataAccess.Repository.IRepository;
+﻿using MCD.DataAccess.Repository.IRepository;
 using MCD.Models;
 using MCD.Models.ViewModels;
 using MCD.Utility;
@@ -7,6 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
+using System.Text;
 
 namespace MCD.Areas.Customer.Controllers
 {
@@ -16,10 +16,12 @@ namespace MCD.Areas.Customer.Controllers
     {
         private readonly IUnitOfWork _UnitOfWork;
         private readonly GoogleDriveService _GoogleDriveService;
-        public DocumentController(IUnitOfWork unitOfWork, GoogleDriveService googleDriveService)
+        private readonly MCDAIFunctions _MCDAIFunctions;
+        public DocumentController(IUnitOfWork unitOfWork, GoogleDriveService googleDriveService, MCDAIFunctions MCDAIFunctions)
         {
             _UnitOfWork = unitOfWork;
             _GoogleDriveService = googleDriveService;
+            _MCDAIFunctions = MCDAIFunctions;
         }
         public IActionResult MoreInfo(int? id)
         {
@@ -44,7 +46,8 @@ namespace MCD.Areas.Customer.Controllers
             MoreInfoVM moreInfoVM = new MoreInfoVM()
             {
                 Document = document,
-                CategoryList = _UnitOfWork.Category.GetAll(u => u.ApplicationUserId == userId).ToList()
+                CategoryList = _UnitOfWork.Category.GetAll(u => u.ApplicationUserId == userId).ToList(),
+                isConverted = _UnitOfWork.ExtractedDocument.Get(u => u.DocumentId == document.Id) != null //to check if the document is already converted to text
             }; //to show the user all the categories that he has when he wants to update the document
 
             return View(moreInfoVM);
@@ -231,7 +234,7 @@ namespace MCD.Areas.Customer.Controllers
         }
 
         [HttpPost]
-        public IActionResult DeleteDocument(int DocumentId)
+        public IActionResult DeleteDocument(int DocumentId, bool deleteConverted = false)
         {
             //first thing make sure that the user are authenticated
             if (!User.Identity.IsAuthenticated)
@@ -249,58 +252,200 @@ namespace MCD.Areas.Customer.Controllers
                 return RedirectToAction("Document", "Home");
             }
 
-            //log action before deleting the document to get its name
+            //log action before deleting the document/converted 
 
             _UnitOfWork.AuditLog.Add(new AuditLog() // log the action
             {
                 ApplicationUserId = userId,
                 userEmailAddress = _UnitOfWork.ApplicationUser.Get(u => u.Id == userId).Email,
-                Action = $"Deleted document",
+                Action = deleteConverted?"Deleted converted document":"Deleted document",
                 FileName = document.FileName,
                 ActionDate = DateTime.Now
             });
             _UnitOfWork.Save(); //save the changes after adding the log
-
-            //before deleting the document we should delete the shared documents that are related to it to remove access first
-            var sharedDocuments = _UnitOfWork.SharedDocument.GetAll(u => u.DocumentId == DocumentId);
-            foreach (var sharedDocument in sharedDocuments) //remove each shared document found of the same document id
+            if (!deleteConverted)
             {
-                _UnitOfWork.AuditLog.Add(new AuditLog() // log the action
+                //before deleting the document we should delete the shared documents that are related to it to remove access first
+                var sharedDocuments = _UnitOfWork.SharedDocument.GetAll(u => u.DocumentId == DocumentId);
+                foreach (var sharedDocument in sharedDocuments) //remove each shared document found of the same document id
                 {
-                    ApplicationUserId = _UnitOfWork.ApplicationUser.Get(u=>u.Email.ToLower() == sharedDocument.SharedToEmail.ToLower()).Id, //the user that has access
-                    userEmailAddress = _UnitOfWork.ApplicationUser.Get(u => u.Id == userId).Email, //the user that deleted the document which will remove the access
-                    Action = $"Removed access",
-                    FileName = sharedDocument.Document.FileName,
-                    ActionDate = DateTime.Now
-                });
+                    _UnitOfWork.AuditLog.Add(new AuditLog() // log the action
+                    {
+                        ApplicationUserId = _UnitOfWork.ApplicationUser.Get(u => u.Email.ToLower() == sharedDocument.SharedToEmail.ToLower()).Id, //the user that has access
+                        userEmailAddress = _UnitOfWork.ApplicationUser.Get(u => u.Id == userId).Email, //the user that deleted the document which will remove the access
+                        Action = $"Removed access",
+                        FileName = sharedDocument.Document.FileName,
+                        ActionDate = DateTime.Now
+                    });
+                    _UnitOfWork.Save();
+                    _UnitOfWork.SharedDocument.Remove(sharedDocument);
+                    _UnitOfWork.Save();
+                }
+                _UnitOfWork.ExtractedDocument.Remove(_UnitOfWork.ExtractedDocument.Get(u => u.DocumentId == DocumentId)); //remove the converted document if exists
                 _UnitOfWork.Save();
-                _UnitOfWork.SharedDocument.Remove(sharedDocument);
+                _UnitOfWork.Document.Remove(document);
                 _UnitOfWork.Save();
+                TempData["success"] = "Document deleted successfully!";
+                return RedirectToAction("Document", "Home");
             }
-
-
-
-
-            _UnitOfWork.Document.Remove(document);
-            _UnitOfWork.Save();
-            TempData["success"] = "Document deleted successfully!";
-
-
-            return RedirectToAction("Document", "Home");
-
-
+            else //delete the converted document
+            {
+                var extractedDocument = _UnitOfWork.ExtractedDocument.Get(u => u.DocumentId == DocumentId);
+                if (extractedDocument == null)
+                {
+                    TempData["error"] = "converted document not found.";
+                    return RedirectToAction("Document", "Home");
+                }
+                _UnitOfWork.ExtractedDocument.Remove(extractedDocument);
+                _UnitOfWork.Save();
+                TempData["success"] = "Converted document deleted successfully!";
+                return RedirectToAction("MoreInfo", new { id = DocumentId });
             }
+        }
 
-
+        [HttpPost]
         public IActionResult SummarizeDocument(int DocumentId)
+        {
+            TempData["error"] = "This feature is not available yet.";
+            return RedirectToAction("Index", "Home");
+        }
+        [HttpPost]
+        public async Task<IActionResult> ConvertToText(int DocumentId)
+        {
+
+            //in order to claim the user id (the one that enters the page)
+            var claimsIdentity = (ClaimsIdentity)User.Identity;
+            var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
+
+            var DriveService = await _GoogleDriveService.GetDriveService(); //get the google drive service instance to interact with the drive
+            var document = _UnitOfWork.Document.Get(u => u.Id == DocumentId); //get the document by its id to use its details to get the google drive file id
+
+            //see if the file is already converted
+            var extractedDocument = _UnitOfWork.ExtractedDocument.Get(u => u.DocumentId == DocumentId);
+            if (extractedDocument != null) //if the document is already converted
+            {
+                TempData["error"] = "Document is already converted to text.";
+                return RedirectToAction("MoreInfo", "Document", new {id=document.Id});
+            }
+
+
+            if (document == null) //if the document not found
+            {
+                TempData["error"] = "Document not found.";
+                return RedirectToAction("Index", "Home");
+            }
+
+            //after getting the id of the file, make a request to the ai service to convert the file to text
+            //first ensure the document format is supported for OCR
+            string fileExtension = Path.GetExtension(document.FileName).ToLower();
+            string[] allowedExtensions = { ".pdf", ".jpg", ".jpeg", ".png", ".tiff" }; //that could be converted to text
+            if (!allowedExtensions.Contains(fileExtension)) //if the file format is not supported
+            {
+                TempData["error"] = "Unsupported file format. Please use a PDF or image file.";
+                return RedirectToAction("MoreInfo", "Document", new {id = document.Id});
+            }
+            string extractedText = await _MCDAIFunctions.SendDataAsync("/ocr", document.Id, document.FileName, userId); //send the file to the ai service to convert it to text
+            if (extractedText == null) {
+                TempData["error"] = "Error converting the document to text.";
+                return RedirectToAction("MoreInfo", "Document",new {id=document.Id});
+            }
+
+            //create a new text file with extracted content
+            string newFileName = Path.GetFileNameWithoutExtension(document.FileName) + "_converted.txt";
+            using var newFileStream = new MemoryStream(Encoding.UTF8.GetBytes(extractedText)); // Convert string to stream
+
+            //get mcd folder in order to save it
+            var folderRequest = DriveService.Files.List();
+            folderRequest.Q = "name = 'MCD' and mimeType = 'application/vnd.google-apps.folder' and trashed = false";
+            folderRequest.Fields = "files(id, name)";
+            var folderResponse = await folderRequest.ExecuteAsync();
+            var mcdFolder = folderResponse.Files.FirstOrDefault();
+
+            if (mcdFolder == null)
+            {
+                return NotFound("MCD folder not found.");
+            }
+            string mcdFolderId = mcdFolder.Id;
+
+
+
+            // get  User's Folder ID inside MCD
+            var userFolderRequest = DriveService.Files.List();
+            userFolderRequest.Q = $"name = '{userId}' and mimeType = 'application/vnd.google-apps.folder' and '{mcdFolderId}' in parents and trashed = false";
+            userFolderRequest.Fields = "files(id, name)";
+            var userFolderResponse = await userFolderRequest.ExecuteAsync();
+            string userFolderId = userFolderResponse.Files[0].Id;
+
+
+            var FileMetaData = new Google.Apis.Drive.v3.Data.File()
+            {
+                Name = document.Id.ToString() + "-" + newFileName,
+                Parents = new List<string> { userFolderId }, //the name of the folder in the drive
+                Description = $"MCD Documents folder uploaded by: {_UnitOfWork.ApplicationUser.Get(u=>u.Id==userId).Email}"
+
+            }; //here i will place the file details that will be uploaded in google drive
+
+            //uploading the file logic
+            using (var stream = newFileStream)
+            {
+                var request = DriveService.Files.Create(FileMetaData, stream, "text/plain");
+                request.Fields = "id, webViewLink"; //  file id and link
+                var uploadedFile = await request.UploadAsync();
+
+                if (uploadedFile.Status != Google.Apis.Upload.UploadStatus.Completed) //if there is an error with the file uploading
+                {
+                    return StatusCode(500, "Error uploading file to Google Drive.");
+                }
+                // Get uploaded file details
+                var fileData = request.ResponseBody;
+                //in order to grant the user access to the file after creating it (making the file not accessible by someone isn't the owner)
+                GoogleDriveService.GiveFilePermission(DriveService, "writer", fileData.Id, _UnitOfWork.ApplicationUser.Get(u => u.Id == userId).Email);
+            }
+            //after uploading the file to the drive we should add it to the extracted documents table and audit log
+            _UnitOfWork.ExtractedDocument.Add(new ExtractedDocument()
+            {
+                DocumentId = DocumentId,
+                ExtractedFileName = newFileName
+            });
+            _UnitOfWork.Save(); //save the changes after adding the extracted document
+            _UnitOfWork.AuditLog.Add(new AuditLog() // log the action
+            {
+                ApplicationUserId = userId,
+                userEmailAddress = _UnitOfWork.ApplicationUser.Get(u => u.Id == userId).Email,
+                Action = $"Converted file to text",
+                FileName = document.FileName,
+                ActionDate = DateTime.Now
+            });
+            _UnitOfWork.Save(); //save the changes after adding the log
+            TempData["success"] = "Document converted to text successfully!";
+
+            return RedirectToAction("MoreInfo", "Document", new {id=document.Id});
+        }
+        public IActionResult RemoveConverted(int DocumentId)
+        {
+            TempData["error"] = "This feature is not available yet.";
+            return RedirectToAction("Index", "Home");
+        }
+        public IActionResult DownloadFile(int DocumentId)
+        {
+            TempData["error"] = "This feature is not available yet.";
+            return RedirectToAction("Index", "Home");
+        }
+        [HttpPost]
+        public IActionResult GetEntities(int DocumentId)
         {
             TempData["error"] = "This feature is not available yet.";
             return RedirectToAction("Index", "Home");
         }
 
 
-            #region api calls
-            [HttpGet]
+
+
+
+
+
+        #region api calls
+        [HttpGet]
             public IActionResult GetallSharedDocuments() //to get all shared documents in datatables API
             {
                 //to get the user id to get all shared documents to him by using his email
