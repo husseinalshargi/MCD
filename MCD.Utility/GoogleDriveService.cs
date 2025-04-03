@@ -153,6 +153,24 @@ namespace MCD.Utility
             }
         }
 
+        public static async Task<MemoryStream> DownloadFileAsync(DriveService service, string fileId) //to download the file from google drive
+        {
+            try
+            {
+                var request = service.Files.Get(fileId); //use the google file id to get the file
+                var stream = new MemoryStream();
 
+                await request.DownloadAsync(stream);
+                stream.Position = 0; //reset stream position before returning for reading
+
+                return stream;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error downloading file: {ex.Message}");
+                return null;
+            }
+
+        }
     }
 }

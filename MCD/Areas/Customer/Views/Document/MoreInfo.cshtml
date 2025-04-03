@@ -77,13 +77,13 @@
     <form method="post" asp-action="DeleteDocument" enctype="multipart/form-data">
         <!-- hidden field to pass ID without the user input it-->
         <input type="hidden" name="DocumentID" value="@Model.Document.Id" />
-        <button type="submit" class="btn btn-danger text-center">Delete</button>
+        <button type="submit" class="btn btn-danger text-center"><i class="bi bi-trash-fill"></i> Delete</button>
     </form>
     <form method="post" asp-action="DownloadFile" enctype="multipart/form-data">
         <!-- hidden field to pass ID without the user input it-->
         <input type="hidden" name="DocumentID" value="@Model.Document.Id" />
         <div class="col text-center button-container">
-            <button type="submit" class="btn btn-dark">Download file</button>
+            <button type="submit" class="btn btn-dark"><i class="bi bi-download"></i> Download file</button>
         </div>
     </form>
 </div>
@@ -155,14 +155,14 @@
                 <input type="hidden" name="DocumentID" value="@Model.Document.Id" />
                 <input type="hidden" name="downloadSummarized" value="true" />
                 <div class="col text-center button-container">
-                    <button type="submit" class="btn btn-dark">Download summarized file</button>
+                    <button type="submit" class="btn btn-dark"><i class="bi bi-download"></i> Download summarized file</button>
                 </div>
             </form>
             <form asp-action="DeleteDocument" enctype="multipart/form-data">
                 <!-- hidden field to pass ID without the user input it-->
                 <input type="hidden" name="DocumentID" value="@Model.Document.Id" />
                 <input type="hidden" name="deleteSummarized" value="true" />
-                <button type="submit" class="btn btn-danger">Delete Summarized File</button>
+                <button type="submit" class="btn btn-danger"><i class="bi bi-trash-fill"></i> Delete Summarized File</button>
             </form>
         </div>
 
@@ -194,14 +194,14 @@
                 <input type="hidden" name="DocumentID" value="@Model.Document.Id" />
                 <input type="hidden" name="downloadConverted" value="true" />
                 <div class="col text-center button-container">
-                    <button type="submit" class="btn btn-dark">Download converted file</button>
+                    <button type="submit" class="btn btn-dark"><i class="bi bi-download"></i> Download converted file</button>
                 </div>
             </form>
             <form asp-action="DeleteDocument" enctype="multipart/form-data">
                 <!-- hidden field to pass ID without the user input it-->
                 <input type="hidden" name="DocumentID" value="@Model.Document.Id" />
                 <input type="hidden" name="deleteConverted" value="true" />
-                <button type="submit" class="btn btn-danger mb-2 ">Delete Converted File</button>
+                <button type="submit" class="btn btn-danger mb-2 "><i class="bi bi-trash-fill"></i> Delete Converted File</button>
             </form>
         </div>
 

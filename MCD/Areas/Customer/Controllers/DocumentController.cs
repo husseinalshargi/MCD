@@ -6,6 +6,8 @@ using MCD.Utility;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using System.IO;
+using System.IO.Pipes;
 using System.Security.Claims;
 using System.Text;
 
@@ -604,10 +606,46 @@ namespace MCD.Areas.Customer.Controllers
 
             return RedirectToAction("MoreInfo", "Document", new {id=document.Id});
         }
-        public IActionResult DownloadFile(int DocumentId, bool downloadConverted = false, bool downloadSummarized = false)
+        public async Task<IActionResult> DownloadFile(int DocumentId, bool downloadConverted = false, bool downloadSummarized = false)
         {
-            TempData["error"] = "This feature is not available yet.";
-            return RedirectToAction("Index", "Home");
+            //in order to claim the user id (the one that enters the page)
+            var claimsIdentity = (ClaimsIdentity)User.Identity;
+            var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
+
+            var DriveService = await _GoogleDriveService.GetDriveService(); //get the google drive service instance to interact with the drive
+            var document = _UnitOfWork.Document.Get(u => u.Id == DocumentId); //get the document by its id to use its details to get the google drive file id
+
+
+            if (document == null) //if the document not found
+            {
+                TempData["error"] = "Document not found.";
+                return RedirectToAction("Index", "Home");
+            }
+
+            //get the file id in google drive to download it
+            string fileNameToDownload = downloadConverted ? Path.GetFileNameWithoutExtension(document.FileName) + "_converted.txt" : downloadSummarized ? Path.GetFileNameWithoutExtension(document.FileName) + "_summarized.txt" : document.FileName; //to change the file name to download that specific file
+            var googleDriveFileId = await GoogleDriveService.GetGoogleDriveFileId(DriveService, DocumentId, fileNameToDownload, userId);
+
+            //download the file from google drive
+            var stream = await GoogleDriveService.DownloadFileAsync(DriveService, googleDriveFileId);
+
+            if (stream == null) //if there is an error whe downloading the file
+            {
+                return BadRequest("Failed to download file.");
+            }
+
+            
+            _UnitOfWork.AuditLog.Add(new AuditLog() // log the action
+            {
+                ApplicationUserId = userId,
+                userEmailAddress = _UnitOfWork.ApplicationUser.Get(u => u.Id == userId).Email,
+                Action = downloadConverted ? "downloaded converted version of"+ document.FileName : downloadSummarized ? "downloaded Summarized version of" + document.FileName : "downloaded " +document.FileName,
+                FileName = document.FileName,
+                ActionDate = DateTime.Now
+            });
+            _UnitOfWork.Save(); //save the changes after adding the log
+
+            return File(stream, "application/octet-stream", fileNameToDownload);
         }
         [HttpPost]
         public IActionResult GetEntities(int DocumentId)
