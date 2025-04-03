@@ -138,6 +138,21 @@ namespace MCD.Utility
             string userFileId = userFileToShare.Id; // get the user file ID
             return userFileId;
         }
+        public static async Task<bool> DeleteFileAsync(DriveService service, string fileId) //to delete the file from google drive
+        {
+            try
+            {
+                await service.Files.Delete(fileId).ExecuteAsync();
+                Console.WriteLine($"File with ID {fileId} deleted successfully.");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error deleting file: {ex.Message}");
+                return false;
+            }
+        }
+
 
     }
 }

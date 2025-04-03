@@ -275,20 +275,18 @@ namespace MCD.Areas.Customer.Controllers
                     FileName = model.DocumentFile.FileName,
                     ActionDate = DateTime.Now
                 });
-                _UnitOfWork.Save(); //save the changes after adding the log
+                _UnitOfWork.Save(); //save the changes after adding the 
+                TempData["success"] = "Document uploaded successfully."; //to show the success message to the user
 
-
-                if (model.Summarize == true)
-                {
-                    //summarization logic 
-                }
-
+            }
+            else
+            {
+                TempData["error"] = "Please select a file to upload."; //to show the error message to the user
             }
 
 
 
-
-            return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(Document));
         }
 
         public IActionResult Privacy()

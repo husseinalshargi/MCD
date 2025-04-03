@@ -1,4 +1,5 @@
-﻿using MCD.DataAccess.Repository.IRepository;
+﻿using Google.Apis.Drive.v3;
+using MCD.DataAccess.Repository.IRepository;
 using MCD.Models;
 using MCD.Models.ViewModels;
 using MCD.Utility;
@@ -235,7 +236,7 @@ namespace MCD.Areas.Customer.Controllers
         }
 
         [HttpPost]
-        public IActionResult DeleteDocument(int DocumentId, bool deleteConverted = false, bool deleteSummarized = false)
+        public async Task<IActionResult> DeleteDocument(int DocumentId, bool deleteConverted = false, bool deleteSummarized = false)
         {
             //first thing make sure that the user are authenticated
             if (!User.Identity.IsAuthenticated)
@@ -264,7 +265,54 @@ namespace MCD.Areas.Customer.Controllers
                 ActionDate = DateTime.Now
             });
             _UnitOfWork.Save(); //save the changes after adding the log
-            if (!deleteConverted)
+
+            //get the file id in google drive to delete from there
+            var driveService = await _GoogleDriveService.GetDriveService(); //get the google drive service instance to interact with the drive
+            string fileNameToDelete = deleteConverted ? Path.GetFileNameWithoutExtension(document.FileName) + "_converted.txt" : deleteSummarized ? Path.GetFileNameWithoutExtension(document.FileName) + "_summarized.txt" : document.FileName; //to change the file name to delete that specific file
+            var googleDriveFilId = await GoogleDriveService.GetGoogleDriveFileId(driveService, DocumentId, fileNameToDelete, userId);
+            var isDeleted = await GoogleDriveService.DeleteFileAsync(driveService, googleDriveFilId); //delete the file from the google drive and return true if deleted successfully
+            
+            if (deleteConverted) //delete the converted document
+            {
+                var extractedDocument = _UnitOfWork.ExtractedDocument.Get(u => u.DocumentId == DocumentId);
+                if (extractedDocument == null)
+                {
+                    TempData["error"] = "converted document not found.";
+                    return RedirectToAction("Document", "Home");
+                }
+                if (isDeleted) //if the file deleted successfully from the google drive
+                {
+                    _UnitOfWork.ExtractedDocument.Remove(extractedDocument);
+                    _UnitOfWork.Save();
+                    TempData["success"] = "Converted document deleted successfully!";
+                }
+                else
+                {
+                    TempData["error"] = "Error deleting the converted document from Google Drive.";
+                }
+                return RedirectToAction("MoreInfo", new { id = DocumentId });
+            }
+            else if (deleteSummarized) //delete the summarized document
+            {
+                var SummarizedDocument = _UnitOfWork.SummarizedDocument.Get(u => u.DocumentId == DocumentId);
+                if (SummarizedDocument == null)
+                {
+                    TempData["error"] = "Summarized document not found.";
+                    return RedirectToAction("Document", "Home");
+                }
+                if (isDeleted) //if the summarized document deleted successfully from the google drive
+                {
+                    _UnitOfWork.SummarizedDocument.Remove(SummarizedDocument);
+                    _UnitOfWork.Save();
+                    TempData["success"] = "Summarized document deleted successfully!";
+                }
+                else
+                {
+                    TempData["error"] = "Error deleting the summarized document from Google Drive.";
+                }
+                return RedirectToAction("MoreInfo", new { id = DocumentId });
+            }
+            else
             {
                 //before deleting the document we should delete the shared documents that are related to it to remove access first
                 var sharedDocuments = _UnitOfWork.SharedDocument.GetAll(u => u.DocumentId == DocumentId);
@@ -282,40 +330,38 @@ namespace MCD.Areas.Customer.Controllers
                     _UnitOfWork.SharedDocument.Remove(sharedDocument);
                     _UnitOfWork.Save();
                 }
-                _UnitOfWork.ExtractedDocument.Remove(_UnitOfWork.ExtractedDocument.Get(u => u.DocumentId == DocumentId)); //remove the converted document if exists
-                _UnitOfWork.Save();
-                _UnitOfWork.Document.Remove(document);
-                _UnitOfWork.Save();
-                TempData["success"] = "Document deleted successfully!";
+                if (isDeleted) //if the file deleted successfully from the google drive
+                {
+                    var extracted = _UnitOfWork.ExtractedDocument.Get(u => u.DocumentId == DocumentId); //check if there is a converted version of the document
+                    var summarized = _UnitOfWork.SummarizedDocument.Get(u => u.DocumentId == DocumentId); //check if there is a summarized version of the document
+                    if (extracted != null) //if the document has a converted version
+                    {
+                        string extractedNameToDelete =Path.GetFileNameWithoutExtension(document.FileName) + "_converted.txt"; //to change the file name to delete converted file
+                        var extractedGoogleDriveFilId = await GoogleDriveService.GetGoogleDriveFileId(driveService, DocumentId, extractedNameToDelete, userId);
+                        var extractedIsDeleted = await GoogleDriveService.DeleteFileAsync(driveService, extractedGoogleDriveFilId); //delete the file from the google drive and return true if deleted successfully
+
+                        _UnitOfWork.ExtractedDocument.Remove(extracted); //remove the converted version of the document from the database
+                        _UnitOfWork.Save();
+                    }
+                    if (summarized != null) //if the document has summarized version
+                    {
+                        string summarizedNameToDelete = Path.GetFileNameWithoutExtension(document.FileName) + "_summarized.txt"; //to change the file name to delete converted file
+                        var summarizedGoogleDriveFilId = await GoogleDriveService.GetGoogleDriveFileId(driveService, DocumentId, summarizedNameToDelete, userId);
+                        var summarizedIsDeleted = await GoogleDriveService.DeleteFileAsync(driveService, summarizedGoogleDriveFilId); //delete the file from the google drive and return true if deleted successfully
+
+                        _UnitOfWork.SummarizedDocument.Remove(summarized); //remove the summarized version from the database
+                        _UnitOfWork.Save();
+                    }
+                    _UnitOfWork.Document.Remove(document);
+                    _UnitOfWork.Save();
+                    TempData["success"] = "Document deleted successfully!";
+                }
+                else
+                {
+                    TempData["error"] = "Error deleting the document from Google Drive.";
+                }
                 return RedirectToAction("Document", "Home");
             }
-            else if (deleteConverted) //delete the converted document
-            {
-                var extractedDocument = _UnitOfWork.ExtractedDocument.Get(u => u.DocumentId == DocumentId);
-                if (extractedDocument == null)
-                {
-                    TempData["error"] = "converted document not found.";
-                    return RedirectToAction("Document", "Home");
-                }
-                _UnitOfWork.ExtractedDocument.Remove(extractedDocument);
-                _UnitOfWork.Save();
-                TempData["success"] = "Converted document deleted successfully!";
-                return RedirectToAction("MoreInfo", new { id = DocumentId });
-            }
-            else if (deleteSummarized) //delete the converted document
-            {
-                var SummarizedDocument = _UnitOfWork.SummarizedDocument.Get(u => u.DocumentId == DocumentId);
-                if (SummarizedDocument == null)
-                {
-                    TempData["error"] = "Summarized document not found.";
-                    return RedirectToAction("Document", "Home");
-                }
-                _UnitOfWork.SummarizedDocument.Remove(SummarizedDocument);
-                _UnitOfWork.Save();
-                TempData["success"] = "Summarized document deleted successfully!";
-                return RedirectToAction("MoreInfo", new { id = DocumentId });
-            }
-            return RedirectToAction("Document", "Home");
         }
 
         [HttpPost]
