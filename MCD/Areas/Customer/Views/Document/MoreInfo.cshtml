@@ -28,7 +28,7 @@
                 <td .disbaled>@Model.Document.FileName</td>
                 <td>
                     <input name="Title" type="text" class="form-control border-0 shadow"
-                    maxlength="50" required value="@Model.Document.Title" placeholder="@Model.Document.Title">
+                           maxlength="50" required value="@Model.Document.Title" placeholder="@Model.Document.Title">
                 </td>
                 <td>
                     <select name="Category" id="CategoryDropdown" class="form-control border-0 shadow" required onchange="toggleNewCategoryField()">
@@ -101,9 +101,9 @@
                 <td>
                     <label class="ms-2">Email</label>
                     <input name="SharedToEmail" class="form-control border-0 shadow"
-                    required
-                    type="email"
-                    placeholder="Enter a valid email" />
+                           required
+                           type="email"
+                           placeholder="Enter a valid email" />
                     <span class="text-danger"></span>
                 </td>
                 <td>
@@ -125,13 +125,34 @@
 
 <div id="sumPart">
     <h2>Summarization</h2>
-    <form method="post" asp-action="SummarizeDocument" enctype="multipart/form-data">
-        <!-- hidden field to pass ID without the user input it-->
-        <input type="hidden" name="DocumentID" value="@Model.Document.Id" />
-        <div class="col text-center button-container">
-            <button type="submit" class="btn btn-secondary">Summarize</button>
+
+    @if (!Model.isSummarized)
+    {
+        <form method="post" asp-action="SummarizeDocument" enctype="multipart/form-data">
+            <!-- hidden field to pass ID without the user input it-->
+            <input type="hidden" name="DocumentID" value="@Model.Document.Id" />
+            <div class="col text-center button-container">
+                <button type="submit" class="btn btn-secondary">Summarize</button>
+            </div>
+        </form>
+    }
+    else
+    {
+        <div class="col text-center button-container d-flex justify-content-center gap-2">
+            <button onclick="openDocument('@Model.Document.ApplicationUserId', '@Model.Document.Id', '@($"{System.IO.Path.GetFileNameWithoutExtension(Model.Document.FileName)}_Summarized.txt")')"
+                    class="btn btn-light mb-2 ">
+                Show Summarized File
+            </button> @*to make the format acceptable by the method (to avoid redundancy)*@
+            <form asp-action="DeleteDocument" enctype="multipart/form-data">
+                <!-- hidden field to pass ID without the user input it-->
+                <input type="hidden" name="DocumentID" value="@Model.Document.Id" />
+                <input type="hidden" name="deleteSummarized" value="true" />
+                <button type="submit" class="btn btn-danger mb-2 ">Delete Summarized File</button>
+            </form>
         </div>
-    </form>
+
+
+    }
 </div>
 <hr class="mb-4">
 <div id="OCRPart">
@@ -140,10 +161,10 @@
     {
         <form method="post" asp-action="ConvertToText" enctype="multipart/form-data">
             <!-- hidden field to pass ID without the user input it-->
-        <input type="hidden" name="DocumentID" value="@Model.Document.Id" />
-        <div class="col text-center button-container">    
-            <button type="submit" class="btn btn-secondary">Convert</button>
-        </div>
+            <input type="hidden" name="DocumentID" value="@Model.Document.Id" />
+            <div class="col text-center button-container">
+                <button type="submit" class="btn btn-secondary">Convert</button>
+            </div>
         </form>
     }
     else
@@ -154,9 +175,9 @@
                 Show Converted File
             </button> @*to make the format acceptable by the method (to avoid redundancy)*@
             <form asp-action="DeleteDocument" enctype="multipart/form-data">
-            <!-- hidden field to pass ID without the user input it-->
+                <!-- hidden field to pass ID without the user input it-->
                 <input type="hidden" name="DocumentID" value="@Model.Document.Id" />
-                <input type="hidden" name="deleteConverted" value="true" />           
+                <input type="hidden" name="deleteConverted" value="true" />
                 <button type="submit" class="btn btn-danger mb-2 ">Delete Converted File</button>
             </form>
         </div>

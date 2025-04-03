@@ -47,7 +47,8 @@ namespace MCD.Areas.Customer.Controllers
             {
                 Document = document,
                 CategoryList = _UnitOfWork.Category.GetAll(u => u.ApplicationUserId == userId).ToList(),
-                isConverted = _UnitOfWork.ExtractedDocument.Get(u => u.DocumentId == document.Id) != null //to check if the document is already converted to text
+                isConverted = _UnitOfWork.ExtractedDocument.Get(u => u.DocumentId == document.Id) != null, //to check if the document is already converted to text
+                isSummarized = _UnitOfWork.SummarizedDocument.Get(u => u.DocumentId == document.Id) != null //to check if the document is already Summarized 
             }; //to show the user all the categories that he has when he wants to update the document
 
             return View(moreInfoVM);
@@ -234,7 +235,7 @@ namespace MCD.Areas.Customer.Controllers
         }
 
         [HttpPost]
-        public IActionResult DeleteDocument(int DocumentId, bool deleteConverted = false)
+        public IActionResult DeleteDocument(int DocumentId, bool deleteConverted = false, bool deleteSummarized = false)
         {
             //first thing make sure that the user are authenticated
             if (!User.Identity.IsAuthenticated)
@@ -258,7 +259,7 @@ namespace MCD.Areas.Customer.Controllers
             {
                 ApplicationUserId = userId,
                 userEmailAddress = _UnitOfWork.ApplicationUser.Get(u => u.Id == userId).Email,
-                Action = deleteConverted?"Deleted converted document":"Deleted document",
+                Action = deleteConverted?"Deleted converted document":deleteSummarized? "Deleted summarized document": "Deleted document",
                 FileName = document.FileName,
                 ActionDate = DateTime.Now
             });
@@ -288,7 +289,7 @@ namespace MCD.Areas.Customer.Controllers
                 TempData["success"] = "Document deleted successfully!";
                 return RedirectToAction("Document", "Home");
             }
-            else //delete the converted document
+            else if (deleteConverted) //delete the converted document
             {
                 var extractedDocument = _UnitOfWork.ExtractedDocument.Get(u => u.DocumentId == DocumentId);
                 if (extractedDocument == null)
@@ -301,13 +302,149 @@ namespace MCD.Areas.Customer.Controllers
                 TempData["success"] = "Converted document deleted successfully!";
                 return RedirectToAction("MoreInfo", new { id = DocumentId });
             }
+            else if (deleteSummarized) //delete the converted document
+            {
+                var SummarizedDocument = _UnitOfWork.SummarizedDocument.Get(u => u.DocumentId == DocumentId);
+                if (SummarizedDocument == null)
+                {
+                    TempData["error"] = "Summarized document not found.";
+                    return RedirectToAction("Document", "Home");
+                }
+                _UnitOfWork.SummarizedDocument.Remove(SummarizedDocument);
+                _UnitOfWork.Save();
+                TempData["success"] = "Summarized document deleted successfully!";
+                return RedirectToAction("MoreInfo", new { id = DocumentId });
+            }
+            return RedirectToAction("Document", "Home");
         }
 
         [HttpPost]
-        public IActionResult SummarizeDocument(int DocumentId)
+        public async Task<IActionResult> SummarizeDocument(int DocumentId)
         {
-            TempData["error"] = "This feature is not available yet.";
-            return RedirectToAction("Index", "Home");
+            //in order to claim the user id (the one that enters the page)
+            var claimsIdentity = (ClaimsIdentity)User.Identity;
+            var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
+
+            var DriveService = await _GoogleDriveService.GetDriveService(); //get the google drive service instance to interact with the drive
+            var document = _UnitOfWork.Document.Get(u => u.Id == DocumentId); //get the document by its id to use its details to get the google drive file id
+
+            //see if the file is already converted
+            var summarizedDocument = _UnitOfWork.SummarizedDocument.Get(u => u.DocumentId == DocumentId);
+            if (summarizedDocument != null) //if the document is already summarized
+            {
+                TempData["error"] = "Document is already summarized.";
+                return RedirectToAction("MoreInfo", "Document", new { id = document.Id });
+            }
+
+            if (document == null) //if the document not found
+            {
+                TempData["error"] = "Document not found.";
+                return RedirectToAction("Index", "Home");
+            }
+
+
+            //check if the extension can be used to summarize or need to be converted by ocr
+            string extension = Path.GetExtension(document.FileName).ToLower();
+
+            //list of allowed text-based file types
+            string[] allowedExtensions = { ".txt", ".csv", ".log", ".json", ".xml", ".md" };
+
+
+            string summarizedText; //to store the summarized text
+
+            //check if the extension is valid
+            if (!allowedExtensions.Contains(extension)) //if it isn't in text format
+            {
+                var extractedDocument = _UnitOfWork.ExtractedDocument.Get(u => u.DocumentId == DocumentId); //check if there is a converted version of the document
+                if (extractedDocument == null)
+                {
+                    TempData["error"] = "document can not be summarized, please use text file or you should convert it to text first";
+                    return RedirectToAction("MoreInfo", "Document", new { id = document.Id });
+                }
+                summarizedText = await _MCDAIFunctions.SendDataAsync("/summarize", document.Id, Path.GetFileNameWithoutExtension(document.FileName) + "_converted.txt", userId); //send the converted version of the file to the ai service to summarize it
+            }
+            else //if it can be used in the summarization directly
+            {
+                //send the file to the ai service to summarize it
+                summarizedText = await _MCDAIFunctions.SendDataAsync("/summarize", document.Id, document.FileName, userId);
+            }
+            if (summarizedText.IsNullOrEmpty())
+            {
+                TempData["error"] = "Error summarizing the document.";
+                return RedirectToAction("MoreInfo", "Document", new { id = document.Id });
+            }
+
+
+            //create a new text file to place summarized content
+            string newFileName = Path.GetFileNameWithoutExtension(document.FileName) + "_summarized.txt";
+            using var newFileStream = new MemoryStream(Encoding.UTF8.GetBytes(summarizedText)); // Convert string to stream
+
+            //get mcd folder in order to save it
+            var folderRequest = DriveService.Files.List();
+            folderRequest.Q = "name = 'MCD' and mimeType = 'application/vnd.google-apps.folder' and trashed = false";
+            folderRequest.Fields = "files(id, name)";
+            var folderResponse = await folderRequest.ExecuteAsync();
+            var mcdFolder = folderResponse.Files.FirstOrDefault();
+
+            if (mcdFolder == null)
+            {
+                return NotFound("MCD folder not found.");
+            }
+            string mcdFolderId = mcdFolder.Id;
+
+
+
+            // get  User's Folder ID inside MCD
+            var userFolderRequest = DriveService.Files.List();
+            userFolderRequest.Q = $"name = '{userId}' and mimeType = 'application/vnd.google-apps.folder' and '{mcdFolderId}' in parents and trashed = false";
+            userFolderRequest.Fields = "files(id, name)";
+            var userFolderResponse = await userFolderRequest.ExecuteAsync();
+            string userFolderId = userFolderResponse.Files[0].Id;
+
+
+            var FileMetaData = new Google.Apis.Drive.v3.Data.File()
+            {
+                Name = document.Id.ToString() + "-" + newFileName,
+                Parents = new List<string> { userFolderId }, //the name of the folder in the drive
+                Description = $"MCD Documents folder uploaded by: {_UnitOfWork.ApplicationUser.Get(u => u.Id == userId).Email}"
+
+            }; //here i will place the file details that will be uploaded in google drive
+
+            //uploading the file logic
+            using (var stream = newFileStream)
+            {
+                var request = DriveService.Files.Create(FileMetaData, stream, "text/plain");
+                request.Fields = "id, webViewLink"; //  file id and link
+                var uploadedFile = await request.UploadAsync();
+
+                if (uploadedFile.Status != Google.Apis.Upload.UploadStatus.Completed) //if there is an error with the file uploading
+                {
+                    return StatusCode(500, "Error uploading file to Google Drive.");
+                }
+                // Get uploaded file details
+                var fileData = request.ResponseBody;
+                //in order to grant the user access to the file after creating it (making the file not accessible by someone isn't the owner)
+                GoogleDriveService.GiveFilePermission(DriveService, "writer", fileData.Id, _UnitOfWork.ApplicationUser.Get(u => u.Id == userId).Email);
+            }
+            //after uploading the file to the drive we should add it to the extracted documents table and audit log
+            _UnitOfWork.ExtractedDocument.Add(new ExtractedDocument()
+            {
+                DocumentId = DocumentId,
+                ExtractedFileName = newFileName
+            });
+            _UnitOfWork.Save(); //save the changes after adding the extracted document
+            _UnitOfWork.AuditLog.Add(new AuditLog() // log the action
+            {
+                ApplicationUserId = userId,
+                userEmailAddress = _UnitOfWork.ApplicationUser.Get(u => u.Id == userId).Email,
+                Action = $"summarize file",
+                FileName = document.FileName,
+                ActionDate = DateTime.Now
+            });
+            _UnitOfWork.Save(); //save the changes after adding the log
+            TempData["success"] = "Document summarized successfully!";
+
+            return RedirectToAction("MoreInfo", "Document", new { id = document.Id });
         }
         [HttpPost]
         public async Task<IActionResult> ConvertToText(int DocumentId)
@@ -420,11 +557,6 @@ namespace MCD.Areas.Customer.Controllers
             TempData["success"] = "Document converted to text successfully!";
 
             return RedirectToAction("MoreInfo", "Document", new {id=document.Id});
-        }
-        public IActionResult RemoveConverted(int DocumentId)
-        {
-            TempData["error"] = "This feature is not available yet.";
-            return RedirectToAction("Index", "Home");
         }
         public IActionResult DownloadFile(int DocumentId)
         {

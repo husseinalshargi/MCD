@@ -11,5 +11,6 @@ namespace MCD.Models.ViewModels
         public Document Document { get; set; }
         public List<Category> CategoryList { get; set; }
         public bool isConverted { get; set; }
+        public bool isSummarized { get; set; }
     }
 }
