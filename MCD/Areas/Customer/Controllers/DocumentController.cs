@@ -473,10 +473,10 @@ namespace MCD.Areas.Customer.Controllers
                 GoogleDriveService.GiveFilePermission(DriveService, "writer", fileData.Id, _UnitOfWork.ApplicationUser.Get(u => u.Id == userId).Email);
             }
             //after uploading the file to the drive we should add it to the extracted documents table and audit log
-            _UnitOfWork.ExtractedDocument.Add(new ExtractedDocument()
+            _UnitOfWork.SummarizedDocument.Add(new SummarizedDocument()
             {
                 DocumentId = DocumentId,
-                ExtractedFileName = newFileName
+                SummarizedFileName = newFileName
             });
             _UnitOfWork.Save(); //save the changes after adding the extracted document
             _UnitOfWork.AuditLog.Add(new AuditLog() // log the action
@@ -604,7 +604,7 @@ namespace MCD.Areas.Customer.Controllers
 
             return RedirectToAction("MoreInfo", "Document", new {id=document.Id});
         }
-        public IActionResult DownloadFile(int DocumentId)
+        public IActionResult DownloadFile(int DocumentId, bool downloadConverted = false, bool downloadSummarized = false)
         {
             TempData["error"] = "This feature is not available yet.";
             return RedirectToAction("Index", "Home");

@@ -277,7 +277,7 @@ namespace MCD.Areas.Customer.Controllers
                 });
                 _UnitOfWork.Save(); //save the changes after adding the 
                 TempData["success"] = "Document uploaded successfully."; //to show the success message to the user
-
+                return RedirectToAction("MoreInfo", "Document", new { id = document.Id });
             }
             else
             {
