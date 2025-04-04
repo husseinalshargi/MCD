@@ -13,24 +13,15 @@ namespace MCD.Models
     {
         [Key]
         public int Id { get; set; }
-
-        // add document foregin key 
         public int DocumentId { get; set; }
-        [ForeignKey("DocumentId")]
-        [ValidateNever] //because it isn't entered by the user
-        public required Document Document { get; set; } //for adding a forgein key we need to connect it with another table  then use it in f key annotation
 
-        [ValidateNever] //because it isn't entered by the user
-        [StringLength(30, MinimumLength = 1)] // the length of the string should be in between 1-30
+        [ForeignKey("DocumentId")]
+        public Document Document { get; set; }
+
+        [ValidateNever]
         public string? EntityType { get; set; }
 
         [ValidateNever] //because it isn't entered by the user
-        public required string EntityValue { get; set; }
-
-        [ValidateNever]
-        public int StartPosition { get; set; }
-
-        [ValidateNever]
-        public int EndPosition { get; set; }
+        public string? EntityValue { get; set; }
     }
 }

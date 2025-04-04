@@ -4,6 +4,7 @@ using MCD.DataAccess.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace MCD.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250404072031_adjustEntitiesTable")]
+    partial class adjustEntitiesTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -157,9 +160,6 @@ namespace MCD.DataAccess.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("DocumentId")
-                        .HasColumnType("int");
-
                     b.Property<string>("EntityType")
                         .HasColumnType("nvarchar(max)");
 
@@ -167,8 +167,6 @@ namespace MCD.DataAccess.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("DocumentId");
 
                     b.ToTable("Entities");
                 });
@@ -518,17 +516,6 @@ namespace MCD.DataAccess.Migrations
                     b.Navigation("Category");
                 });
 
-            modelBuilder.Entity("MCD.Models.Entity", b =>
-                {
-                    b.HasOne("MCD.Models.Document", "Document")
-                        .WithMany("ExtractedEntities")
-                        .HasForeignKey("DocumentId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Document");
-                });
-
             modelBuilder.Entity("MCD.Models.ExtractedDocument", b =>
                 {
                     b.HasOne("MCD.Models.Document", "Document")
@@ -611,11 +598,6 @@ namespace MCD.DataAccess.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("MCD.Models.Document", b =>
-                {
-                    b.Navigation("ExtractedEntities");
                 });
 #pragma warning restore 612, 618
         }

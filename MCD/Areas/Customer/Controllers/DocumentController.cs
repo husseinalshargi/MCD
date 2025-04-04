@@ -10,6 +10,8 @@ using System.IO;
 using System.IO.Pipes;
 using System.Security.Claims;
 using System.Text;
+using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace MCD.Areas.Customer.Controllers
 {
@@ -51,7 +53,8 @@ namespace MCD.Areas.Customer.Controllers
                 Document = document,
                 CategoryList = _UnitOfWork.Category.GetAll(u => u.ApplicationUserId == userId).ToList(),
                 isConverted = _UnitOfWork.ExtractedDocument.Get(u => u.DocumentId == document.Id) != null, //to check if the document is already converted to text
-                isSummarized = _UnitOfWork.SummarizedDocument.Get(u => u.DocumentId == document.Id) != null //to check if the document is already Summarized 
+                isSummarized = _UnitOfWork.SummarizedDocument.Get(u => u.DocumentId == document.Id) != null, //to check if the document is already Summarized 
+                isExtracted = _UnitOfWork.Entity.Get(u => u.DocumentId == document.Id) != null
             }; //to show the user all the categories that he has when he wants to update the document
 
             return View(moreInfoVM);
@@ -234,11 +237,11 @@ namespace MCD.Areas.Customer.Controllers
             _UnitOfWork.Save();
             TempData["success"] = "Document updated successfully!";
 
-            return RedirectToAction("MoreInfo", new { id = document.Id});
+            return RedirectToAction("MoreInfo", new { id = document.Id });
         }
 
         [HttpPost]
-        public async Task<IActionResult> DeleteDocument(int DocumentId, bool deleteConverted = false, bool deleteSummarized = false)
+        public async Task<IActionResult> DeleteDocument(int DocumentId, bool deleteConverted = false, bool deleteSummarized = false, bool deleteExtracted = false)
         {
             //first thing make sure that the user are authenticated
             if (!User.Identity.IsAuthenticated)
@@ -262,7 +265,7 @@ namespace MCD.Areas.Customer.Controllers
             {
                 ApplicationUserId = userId,
                 userEmailAddress = _UnitOfWork.ApplicationUser.Get(u => u.Id == userId).Email,
-                Action = deleteConverted?"Deleted converted document":deleteSummarized? "Deleted summarized document": "Deleted document",
+                Action = deleteConverted ? "Deleted converted document" : deleteSummarized ? "Deleted summarized document" : deleteExtracted ? "Deleted extracted entities" : "Deleted document",
                 FileName = document.FileName,
                 ActionDate = DateTime.Now
             });
@@ -270,10 +273,10 @@ namespace MCD.Areas.Customer.Controllers
 
             //get the file id in google drive to delete from there
             var driveService = await _GoogleDriveService.GetDriveService(); //get the google drive service instance to interact with the drive
-            string fileNameToDelete = deleteConverted ? Path.GetFileNameWithoutExtension(document.FileName) + "_converted.txt" : deleteSummarized ? Path.GetFileNameWithoutExtension(document.FileName) + "_summarized.txt" : document.FileName; //to change the file name to delete that specific file
+            string fileNameToDelete = deleteConverted ? Path.GetFileNameWithoutExtension(document.FileName) + "_converted.txt" : deleteSummarized ? Path.GetFileNameWithoutExtension(document.FileName) + "_summarized.txt" : deleteExtracted ? Path.GetFileNameWithoutExtension(document.FileName) + "_converted.json" : document.FileName; //to change the file name to delete that specific file
             var googleDriveFilId = await GoogleDriveService.GetGoogleDriveFileId(driveService, DocumentId, fileNameToDelete, userId);
             var isDeleted = await GoogleDriveService.DeleteFileAsync(driveService, googleDriveFilId); //delete the file from the google drive and return true if deleted successfully
-            
+
             if (deleteConverted) //delete the converted document
             {
                 var extractedDocument = _UnitOfWork.ExtractedDocument.Get(u => u.DocumentId == DocumentId);
@@ -314,6 +317,27 @@ namespace MCD.Areas.Customer.Controllers
                 }
                 return RedirectToAction("MoreInfo", new { id = DocumentId });
             }
+            else if (deleteExtracted)
+            {
+                var ExtractedEntitiesList = _UnitOfWork.Document.Get(u => u.Id == DocumentId).ExtractedEntities;
+                if (ExtractedEntitiesList == null)
+                {
+                    TempData["error"] = "Extracted entities not found.";
+                    return RedirectToAction("Document", "Home");
+                }
+                if (isDeleted) //if the summarized document deleted successfully from the google drive
+                {
+                    document.ExtractedEntities = null;
+                    _UnitOfWork.Document.Update(document);  // mark the document as updated
+                    _UnitOfWork.Save();
+                    TempData["success"] = "Extracted entities deleted successfully!";
+                }
+                else
+                {
+                    TempData["error"] = "Error deleting the extracted entities from Google Drive.";
+                }
+                return RedirectToAction("MoreInfo", new { id = DocumentId });
+            }
             else
             {
                 //before deleting the document we should delete the shared documents that are related to it to remove access first
@@ -336,9 +360,10 @@ namespace MCD.Areas.Customer.Controllers
                 {
                     var extracted = _UnitOfWork.ExtractedDocument.Get(u => u.DocumentId == DocumentId); //check if there is a converted version of the document
                     var summarized = _UnitOfWork.SummarizedDocument.Get(u => u.DocumentId == DocumentId); //check if there is a summarized version of the document
+                    var extractedEntities = _UnitOfWork.Entity.GetAll(u => u.DocumentId == DocumentId); //check if there is a extracted entities version of the document
                     if (extracted != null) //if the document has a converted version
                     {
-                        string extractedNameToDelete =Path.GetFileNameWithoutExtension(document.FileName) + "_converted.txt"; //to change the file name to delete converted file
+                        string extractedNameToDelete = Path.GetFileNameWithoutExtension(document.FileName) + "_converted.txt"; //to change the file name to delete converted file
                         var extractedGoogleDriveFilId = await GoogleDriveService.GetGoogleDriveFileId(driveService, DocumentId, extractedNameToDelete, userId);
                         var extractedIsDeleted = await GoogleDriveService.DeleteFileAsync(driveService, extractedGoogleDriveFilId); //delete the file from the google drive and return true if deleted successfully
 
@@ -350,6 +375,15 @@ namespace MCD.Areas.Customer.Controllers
                         string summarizedNameToDelete = Path.GetFileNameWithoutExtension(document.FileName) + "_summarized.txt"; //to change the file name to delete converted file
                         var summarizedGoogleDriveFilId = await GoogleDriveService.GetGoogleDriveFileId(driveService, DocumentId, summarizedNameToDelete, userId);
                         var summarizedIsDeleted = await GoogleDriveService.DeleteFileAsync(driveService, summarizedGoogleDriveFilId); //delete the file from the google drive and return true if deleted successfully
+
+                        _UnitOfWork.SummarizedDocument.Remove(summarized); //remove the summarized version from the database
+                        _UnitOfWork.Save();
+                    }
+                    if (extractedEntities != null) //if the document has extracted entities version
+                    {
+                        string extractedEntitiesNameToDelete = Path.GetFileNameWithoutExtension(document.FileName) + "_summarized.txt"; //to change the file name to delete converted file
+                        var extractedEntitiesGoogleDriveFilId = await GoogleDriveService.GetGoogleDriveFileId(driveService, DocumentId, extractedEntitiesNameToDelete, userId);
+                        var extractedEntitiesIsDeleted = await GoogleDriveService.DeleteFileAsync(driveService, extractedEntitiesGoogleDriveFilId); //delete the file from the google drive and return true if deleted successfully
 
                         _UnitOfWork.SummarizedDocument.Remove(summarized); //remove the summarized version from the database
                         _UnitOfWork.Save();
@@ -375,6 +409,13 @@ namespace MCD.Areas.Customer.Controllers
 
             var DriveService = await _GoogleDriveService.GetDriveService(); //get the google drive service instance to interact with the drive
             var document = _UnitOfWork.Document.Get(u => u.Id == DocumentId); //get the document by its id to use its details to get the google drive file id
+
+            //if the user is not authenticated
+            if (document.ApplicationUserId != userId)
+            {
+                TempData["error"] = "You are not authorized to access this document.";
+                return RedirectToAction("Index", "Home");
+            }
 
             //see if the file is already converted
             var summarizedDocument = _UnitOfWork.SummarizedDocument.Get(u => u.DocumentId == DocumentId);
@@ -505,12 +546,19 @@ namespace MCD.Areas.Customer.Controllers
             var DriveService = await _GoogleDriveService.GetDriveService(); //get the google drive service instance to interact with the drive
             var document = _UnitOfWork.Document.Get(u => u.Id == DocumentId); //get the document by its id to use its details to get the google drive file id
 
+            //if the user is not authenticated
+            if (document.ApplicationUserId != userId)
+            {
+                TempData["error"] = "You are not authorized to access this document.";
+                return RedirectToAction("Index", "Home");
+            }
+
             //see if the file is already converted
             var extractedDocument = _UnitOfWork.ExtractedDocument.Get(u => u.DocumentId == DocumentId);
             if (extractedDocument != null) //if the document is already converted
             {
                 TempData["error"] = "Document is already converted to text.";
-                return RedirectToAction("MoreInfo", "Document", new {id=document.Id});
+                return RedirectToAction("MoreInfo", "Document", new { id = document.Id });
             }
 
 
@@ -527,12 +575,13 @@ namespace MCD.Areas.Customer.Controllers
             if (!allowedExtensions.Contains(fileExtension)) //if the file format is not supported
             {
                 TempData["error"] = "Unsupported file format. Please use a PDF or image file.";
-                return RedirectToAction("MoreInfo", "Document", new {id = document.Id});
+                return RedirectToAction("MoreInfo", "Document", new { id = document.Id });
             }
             string extractedText = await _MCDAIFunctions.SendDataAsync("/ocr", document.Id, document.FileName, userId); //send the file to the ai service to convert it to text
-            if (extractedText == null) {
+            if (extractedText == null)
+            {
                 TempData["error"] = "Error converting the document to text.";
-                return RedirectToAction("MoreInfo", "Document",new {id=document.Id});
+                return RedirectToAction("MoreInfo", "Document", new { id = document.Id });
             }
 
             //create a new text file with extracted content
@@ -566,7 +615,7 @@ namespace MCD.Areas.Customer.Controllers
             {
                 Name = document.Id.ToString() + "-" + newFileName,
                 Parents = new List<string> { userFolderId }, //the name of the folder in the drive
-                Description = $"MCD Documents folder uploaded by: {_UnitOfWork.ApplicationUser.Get(u=>u.Id==userId).Email}"
+                Description = $"MCD Documents folder uploaded by: {_UnitOfWork.ApplicationUser.Get(u => u.Id == userId).Email}"
 
             }; //here i will place the file details that will be uploaded in google drive
 
@@ -604,9 +653,9 @@ namespace MCD.Areas.Customer.Controllers
             _UnitOfWork.Save(); //save the changes after adding the log
             TempData["success"] = "Document converted to text successfully!";
 
-            return RedirectToAction("MoreInfo", "Document", new {id=document.Id});
+            return RedirectToAction("MoreInfo", "Document", new { id = document.Id });
         }
-        public async Task<IActionResult> DownloadFile(int DocumentId, bool downloadConverted = false, bool downloadSummarized = false)
+        public async Task<IActionResult> DownloadFile(int DocumentId, bool downloadConverted = false, bool downloadSummarized = false, bool downloadExtracted = false)
         {
             //in order to claim the user id (the one that enters the page)
             var claimsIdentity = (ClaimsIdentity)User.Identity;
@@ -614,6 +663,12 @@ namespace MCD.Areas.Customer.Controllers
 
             var DriveService = await _GoogleDriveService.GetDriveService(); //get the google drive service instance to interact with the drive
             var document = _UnitOfWork.Document.Get(u => u.Id == DocumentId); //get the document by its id to use its details to get the google drive file id
+            //if the user is not authenticated
+            if (document.ApplicationUserId != userId)
+            {
+                TempData["error"] = "You are not authorized to access this document.";
+                return RedirectToAction("Index", "Home");
+            }
 
 
             if (document == null) //if the document not found
@@ -623,7 +678,7 @@ namespace MCD.Areas.Customer.Controllers
             }
 
             //get the file id in google drive to download it
-            string fileNameToDownload = downloadConverted ? Path.GetFileNameWithoutExtension(document.FileName) + "_converted.txt" : downloadSummarized ? Path.GetFileNameWithoutExtension(document.FileName) + "_summarized.txt" : document.FileName; //to change the file name to download that specific file
+            string fileNameToDownload = downloadConverted ? Path.GetFileNameWithoutExtension(document.FileName) + "_converted.txt" : downloadSummarized ? Path.GetFileNameWithoutExtension(document.FileName) + "_summarized.txt" : downloadExtracted ? Path.GetFileNameWithoutExtension(document.FileName) + "_entities.txt" : document.FileName; //to change the file name to download that specific file
             var googleDriveFileId = await GoogleDriveService.GetGoogleDriveFileId(DriveService, DocumentId, fileNameToDownload, userId);
 
             //download the file from google drive
@@ -634,12 +689,12 @@ namespace MCD.Areas.Customer.Controllers
                 return BadRequest("Failed to download file.");
             }
 
-            
+
             _UnitOfWork.AuditLog.Add(new AuditLog() // log the action
             {
                 ApplicationUserId = userId,
                 userEmailAddress = _UnitOfWork.ApplicationUser.Get(u => u.Id == userId).Email,
-                Action = downloadConverted ? "downloaded converted version of"+ document.FileName : downloadSummarized ? "downloaded Summarized version of" + document.FileName : "downloaded " +document.FileName,
+                Action = (downloadConverted ? "downloaded converted version of " : downloadSummarized ? "downloaded Summarized version of " : downloadExtracted ? "downloaded extracted entities of " : "downloaded ") + document.FileName,
                 FileName = document.FileName,
                 ActionDate = DateTime.Now
             });
@@ -648,10 +703,172 @@ namespace MCD.Areas.Customer.Controllers
             return File(stream, "application/octet-stream", fileNameToDownload);
         }
         [HttpPost]
-        public IActionResult GetEntities(int DocumentId)
+        public async Task<IActionResult> GetEntities(int DocumentId)
         {
-            TempData["error"] = "This feature is not available yet.";
-            return RedirectToAction("Index", "Home");
+            //in order to claim the user id (the one that enters the page)
+            var claimsIdentity = (ClaimsIdentity)User.Identity;
+            var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
+
+            var DriveService = await _GoogleDriveService.GetDriveService(); //get the google drive service instance to interact with the drive
+            var document = _UnitOfWork.Document.Get(u => u.Id == DocumentId); //get the document by its id to use its details to get the google drive file id
+
+            //if the user is not authenticated
+            if (document.ApplicationUserId != userId)
+            {
+                TempData["error"] = "You are not authorized to access this document.";
+                return RedirectToAction("Index", "Home");
+            }
+
+            var extractedEntities = _UnitOfWork.Entity.Get(u => u.DocumentId == DocumentId); //check if there is a converted version of the document
+
+            //see if the file is already converted
+            if (extractedEntities != null) //if the document is already has entities file
+            {
+                TempData["error"] = "Document already extracted entities.";
+                return RedirectToAction("MoreInfo", "Document", new { id = document.Id });
+            }
+
+            if (document == null) //if the document not found
+            {
+                TempData["error"] = "Document not found.";
+                return RedirectToAction("Index", "Home");
+            }
+
+
+            //check if the extension can be used to extract entities or need to be converted by ocr
+            string extension = Path.GetExtension(document.FileName).ToLower();
+
+            //list of allowed text-based file types
+            string[] allowedExtensions = { ".txt", ".csv", ".log", ".json", ".xml", ".md" };
+
+
+            string extractedEntitiesText; //to store the extracted entities
+
+            //check if the extension is valid
+            if (!allowedExtensions.Contains(extension)) //if it isn't in text format
+            {
+                var extractedDocument = _UnitOfWork.ExtractedDocument.Get(u => u.DocumentId == DocumentId); //check if there is a converted version of the document
+                if (extractedDocument == null)
+                {
+                    TempData["error"] = "entities can not be extracted, please use text file or you should convert it to text first";
+                    return RedirectToAction("MoreInfo", "Document", new { id = document.Id });
+                }
+                extractedEntitiesText = await _MCDAIFunctions.SendDataAsync("/entities", document.Id, Path.GetFileNameWithoutExtension(document.FileName) + "_converted.txt", userId); //send the converted version of the file to the ai service to extract entities
+            }
+            else //if it can be used in the entities extraction directly
+            {
+                //send the file to the ai service to extract entities
+                extractedEntitiesText = await _MCDAIFunctions.SendDataAsync("/entities", document.Id, document.FileName, userId);
+            }
+            if (extractedEntitiesText.IsNullOrEmpty())
+            {
+                TempData["error"] = "Error summarizing the document.";
+                return RedirectToAction("MoreInfo", "Document", new { id = document.Id });
+            }
+
+            //create a new text file to place extracted entities content
+            string newFileName = Path.GetFileNameWithoutExtension(document.FileName) + "_entities.txt";
+            using var newFileStream = new MemoryStream(Encoding.UTF8.GetBytes(extractedEntitiesText)); // Convert string to stream
+
+            //get mcd folder in order to save it
+            var folderRequest = DriveService.Files.List();
+            folderRequest.Q = "name = 'MCD' and mimeType = 'application/vnd.google-apps.folder' and trashed = false";
+            folderRequest.Fields = "files(id, name)";
+            var folderResponse = await folderRequest.ExecuteAsync();
+            var mcdFolder = folderResponse.Files.FirstOrDefault();
+
+            if (mcdFolder == null)
+            {
+                return NotFound("MCD folder not found.");
+            }
+            string mcdFolderId = mcdFolder.Id;
+
+
+
+            // get  User's Folder ID inside MCD
+            var userFolderRequest = DriveService.Files.List();
+            userFolderRequest.Q = $"name = '{userId}' and mimeType = 'application/vnd.google-apps.folder' and '{mcdFolderId}' in parents and trashed = false";
+            userFolderRequest.Fields = "files(id, name)";
+            var userFolderResponse = await userFolderRequest.ExecuteAsync();
+            string userFolderId = userFolderResponse.Files[0].Id;
+
+
+            var FileMetaData = new Google.Apis.Drive.v3.Data.File()
+            {
+                Name = document.Id.ToString() + "-" + newFileName,
+                Parents = new List<string> { userFolderId }, //the name of the folder in the drive
+                Description = $"MCD Documents folder uploaded by: {_UnitOfWork.ApplicationUser.Get(u => u.Id == userId).Email}"
+
+            }; //here i will place the file details that will be uploaded in google drive
+
+            //uploading the file logic
+            using (var stream = newFileStream)
+            {
+                var request = DriveService.Files.Create(FileMetaData, stream, "text/plain");
+                request.Fields = "id, webViewLink"; //  file id and link
+                var uploadedFile = await request.UploadAsync();
+
+                if (uploadedFile.Status != Google.Apis.Upload.UploadStatus.Completed) //if there is an error with the file uploading
+                {
+                    return StatusCode(500, "Error uploading file to Google Drive.");
+                }
+                // Get uploaded file details
+                var fileData = request.ResponseBody;
+                //in order to grant the user access to the file after creating it (making the file not accessible by someone isn't the owner)
+                GoogleDriveService.GiveFilePermission(DriveService, "writer", fileData.Id, _UnitOfWork.ApplicationUser.Get(u => u.Id == userId).Email);
+            }
+
+
+            var extractedEntitiesList = new List<Entity>();
+
+            //clean the string
+            string cleanText = extractedEntitiesText
+                .Replace("```python", "")
+                .Replace("```", "")
+                .Trim();
+
+            //match each key and list of values
+            var matches = Regex.Matches(cleanText, @"(\w+)\s*:\s*\[([^\]]*)\]");
+
+            foreach (Match match in matches)
+            {
+                string entityType = match.Groups[1].Value.ToLower(); // e.g., "person", "location"
+                string entityValuesRaw = match.Groups[2].Value;      // e.g., "Google, GoogleDrive"
+
+                //split and clean the values
+                var entityValues = entityValuesRaw
+                    .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(v => v.Trim().Trim('"'))
+                    .Where(v => !string.IsNullOrWhiteSpace(v));
+
+                foreach (var value in entityValues)
+                {
+                    extractedEntitiesList.Add(new Entity
+                    {
+                        DocumentId = document.Id,
+                        EntityType = entityType,
+                        EntityValue = value
+                    });
+                }
+            }
+
+            document.ExtractedEntities = extractedEntitiesList;
+            _UnitOfWork.Document.Update(document);
+            _UnitOfWork.Save();
+
+
+            _UnitOfWork.AuditLog.Add(new AuditLog() // log the action
+            {
+                ApplicationUserId = userId,
+                userEmailAddress = _UnitOfWork.ApplicationUser.Get(u => u.Id == userId).Email,
+                Action = $"extracted entities of the file",
+                FileName = document.FileName,
+                ActionDate = DateTime.Now
+            });
+            _UnitOfWork.Save(); //save the changes after adding the log
+            TempData["success"] = "Extracted entities successfully!";
+
+            return RedirectToAction("MoreInfo", "Document", new { id = document.Id });
         }
 
 
@@ -662,21 +879,21 @@ namespace MCD.Areas.Customer.Controllers
 
         #region api calls
         [HttpGet]
-            public IActionResult GetallSharedDocuments() //to get all shared documents in datatables API
-            {
-                //to get the user id to get all shared documents to him by using his email
-                var claimsIdentity = (ClaimsIdentity)User.Identity;
-                var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
-                var SharedToUser = _UnitOfWork.ApplicationUser.Get(u => u.Id == userId); //get the user by his id to get all shared documents to him using his email (shared to property)
+        public IActionResult GetallSharedDocuments() //to get all shared documents in datatables API
+        {
+            //to get the user id to get all shared documents to him by using his email
+            var claimsIdentity = (ClaimsIdentity)User.Identity;
+            var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
+            var SharedToUser = _UnitOfWork.ApplicationUser.Get(u => u.Id == userId); //get the user by his id to get all shared documents to him using his email (shared to property)
 
 
-                List<SharedDocument> SharedDocumentList = _UnitOfWork.SharedDocument.GetAll(u => u.SharedToEmail.ToLower() == SharedToUser.Email.ToLower(),
-                    includeProperties: "Document,Document.ApplicationUser").ToList();
-                return Json(new { data = SharedDocumentList });
-
-            }
-
-            #endregion
+            List<SharedDocument> SharedDocumentList = _UnitOfWork.SharedDocument.GetAll(u => u.SharedToEmail.ToLower() == SharedToUser.Email.ToLower(),
+                includeProperties: "Document,Document.ApplicationUser").ToList();
+            return Json(new { data = SharedDocumentList });
 
         }
+
+        #endregion
+
     }
+}

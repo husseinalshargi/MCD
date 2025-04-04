@@ -12,5 +12,6 @@ namespace MCD.Models.ViewModels
         public List<Category> CategoryList { get; set; }
         public bool isConverted { get; set; }
         public bool isSummarized { get; set; }
+        public bool isExtracted { get; set; }
     }
 }

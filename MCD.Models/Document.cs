@@ -51,5 +51,8 @@ namespace MCD.Models
 
         public string AITaskStatus { get; set; } // processing processed etc..
 
+        [ValidateNever]
+        public ICollection<Entity>? ExtractedEntities { get; set; }
+
     }
 }
