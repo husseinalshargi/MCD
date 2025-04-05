@@ -308,7 +308,17 @@ namespace MCD.Areas.Customer.Controllers
             var claimsIdentity = (ClaimsIdentity)User.Identity;
             var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
 
-            List<Document> DocumentList = _UnitOfWork.Document.GetAll(includeProperties: "Category").Where(u => u.ApplicationUserId == userId).ToList();
+            var DocumentList = _UnitOfWork.Document.GetAll(includeProperties: "Category,ExtractedEntities").Where(u => u.ApplicationUserId == userId)
+        .Select(doc => new //to select the data that we want to show in the datatables api to avoid sending all the data to the client side
+        {
+            doc.Id,
+            doc.Title,
+            doc.FileName,
+            doc.UploadDate,
+            doc.UpdateDate,
+            doc.Category.CategoryName,
+            EntityText = string.Join(", ", doc.ExtractedEntities.Select(e => e.EntityValue))
+        }).ToList();
 
             return Json(new { data = DocumentList });
         }

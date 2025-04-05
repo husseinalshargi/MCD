@@ -18,7 +18,6 @@
                 <th>Upload Date</th>
                 <th>Update Date</th>
                 <th>Update</th>
-                <th>AI Task Status</th>
             </tr>
         </thead>
         <tbody id="moreInfoBody">
@@ -56,10 +55,8 @@
                 <td .disbaled>@Model.Document.UpdateDate</td>
 
                 <td><button type="submit" class="btn btn-secondary">Update</button></td>
-                <td>Currently not available</td>
             </tr>
             <tr>
-                <td></td>
                 <td></td>
                 <td></td>
                 <td></td>
@@ -130,46 +127,6 @@
 
 <hr class="mb-4">
 
-<div id="sumPart">
-    <h2>Summarization</h2>
-
-    @if (!Model.isSummarized)
-    {
-        <form method="post" asp-action="SummarizeDocument" enctype="multipart/form-data">
-            <!-- hidden field to pass ID without the user input it-->
-            <input type="hidden" name="DocumentID" value="@Model.Document.Id" />
-            <div class="col text-center button-container">
-                <button type="submit" class="btn btn-secondary">Summarize</button>
-            </div>
-        </form>
-    }
-    else
-    {
-        <div class="col text-center button-container d-flex justify-content-center gap-2">
-            <button onclick="openDocument('@Model.Document.ApplicationUserId', '@Model.Document.Id', '@($"{System.IO.Path.GetFileNameWithoutExtension(Model.Document.FileName)}_Summarized.txt")')"
-            class="btn btn-light">
-                Show Summarized File
-            </button> @*to make the format acceptable by the method (to avoid redundancy)*@
-            <form method="post" asp-action="DownloadFile" enctype="multipart/form-data">
-                <!-- hidden field to pass ID without the user input it-->
-                <input type="hidden" name="DocumentID" value="@Model.Document.Id" />
-                <input type="hidden" name="downloadSummarized" value="true" />
-                <div class="col text-center button-container">
-                    <button type="submit" class="btn btn-dark"><i class="bi bi-download"></i> Download summarized file</button>
-                </div>
-            </form>
-            <form asp-action="DeleteDocument" enctype="multipart/form-data">
-                <!-- hidden field to pass ID without the user input it-->
-                <input type="hidden" name="DocumentID" value="@Model.Document.Id" />
-                <input type="hidden" name="deleteSummarized" value="true" />
-                <button type="submit" class="btn btn-danger"><i class="bi bi-trash-fill"></i> Delete Summarized File</button>
-            </form>
-        </div>
-
-
-    }
-</div>
-<hr class="mb-4 mt-4">
 <div id="OCRPart">
     <h2>Convert To Text</h2>
     @if (!Model.isConverted)
@@ -202,6 +159,48 @@
                 <input type="hidden" name="DocumentID" value="@Model.Document.Id" />
                 <input type="hidden" name="deleteConverted" value="true" />
                 <button type="submit" class="btn btn-danger mb-2 "><i class="bi bi-trash-fill"></i> Delete Converted File</button>
+            </form>
+        </div>
+
+
+    }
+</div>
+
+<hr class="mb-4 mt-4">
+
+<div id="sumPart">
+    <h2>Summarization</h2>
+
+    @if (!Model.isSummarized)
+    {
+        <form method="post" asp-action="SummarizeDocument" enctype="multipart/form-data">
+            <!-- hidden field to pass ID without the user input it-->
+            <input type="hidden" name="DocumentID" value="@Model.Document.Id" />
+            <div class="col text-center button-container">
+                <button type="submit" class="btn btn-secondary">Summarize</button>
+            </div>
+        </form>
+    }
+    else
+    {
+        <div class="col text-center button-container d-flex justify-content-center gap-2">
+            <button onclick="openDocument('@Model.Document.ApplicationUserId', '@Model.Document.Id', '@($"{System.IO.Path.GetFileNameWithoutExtension(Model.Document.FileName)}_Summarized.txt")')"
+                    class="btn btn-light">
+                Show Summarized File
+            </button> @*to make the format acceptable by the method (to avoid redundancy)*@
+            <form method="post" asp-action="DownloadFile" enctype="multipart/form-data">
+                <!-- hidden field to pass ID without the user input it-->
+                <input type="hidden" name="DocumentID" value="@Model.Document.Id" />
+                <input type="hidden" name="downloadSummarized" value="true" />
+                <div class="col text-center button-container">
+                    <button type="submit" class="btn btn-dark"><i class="bi bi-download"></i> Download summarized file</button>
+                </div>
+            </form>
+            <form asp-action="DeleteDocument" enctype="multipart/form-data">
+                <!-- hidden field to pass ID without the user input it-->
+                <input type="hidden" name="DocumentID" value="@Model.Document.Id" />
+                <input type="hidden" name="deleteSummarized" value="true" />
+                <button type="submit" class="btn btn-danger"><i class="bi bi-trash-fill"></i> Delete Summarized File</button>
             </form>
         </div>
 

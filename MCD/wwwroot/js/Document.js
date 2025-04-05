@@ -39,7 +39,7 @@ function loadDataTable() {
                     return new Date(data).toLocaleString(); // Format timestamp to make it readable
                 }
             },
-            { data: 'category.categoryName', "width": "10%" },
+            { data: 'categoryName', "width": "10%" },
             {
                 data: 'id',
                 "render": function (data) { //the data is the id
@@ -49,6 +49,12 @@ function loadDataTable() {
                 },
                 "width": "15%"
             },
+            //to make the hidden column for entity text as it is only searchable but the user can not see it in the ui
+            {
+                data: 'entityText',   //searchable hidden column
+                visible: false,       //hides the column from view
+                searchable: true      
+            }
         ]
     });
 }

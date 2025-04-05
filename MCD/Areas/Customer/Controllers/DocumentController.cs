@@ -866,9 +866,17 @@ namespace MCD.Areas.Customer.Controllers
                 ActionDate = DateTime.Now
             });
             _UnitOfWork.Save(); //save the changes after adding the log
-            TempData["success"] = "Extracted entities successfully!";
+            var entity = _UnitOfWork.Entity.GetAll(u => u.DocumentId == document.Id).ToList();
+            if (entity != null)
+            {
+                TempData["success"] = "Extracted entities successfully!";
+            }
+            else
+            {
+                TempData["error"] = "Entities not found!";
+            }
 
-            return RedirectToAction("MoreInfo", "Document", new { id = document.Id });
+                return RedirectToAction("MoreInfo", "Document", new { id = document.Id });
         }
 
 
