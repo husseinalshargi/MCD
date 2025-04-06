@@ -88,7 +88,7 @@ namespace MCD.Areas.Customer.Controllers
 
             if (string.IsNullOrEmpty(SharedToEmail))
             {
-                TempData["error"] = "Do not leave it empty."; //there aren't a user with this email
+                TempData["error"] = "Do not leave it empty."; //there is no input
                 return RedirectToAction("MoreInfo", new { id = DocumentId }); //return to the function with the document id
             }
 
@@ -96,7 +96,7 @@ namespace MCD.Areas.Customer.Controllers
             var SharedToUser = _UnitOfWork.ApplicationUser.Get(u => u.Email.ToLower() == SharedToEmail.ToLower());
             if (SharedToUser == null)
             {
-                TempData["error"] = "User with this email does not exist.";
+                TempData["error"] = $"User with this email does not exist. <a href='/Customer/ShareMCD/ThanksForSharing?emailToShare={SharedToEmail}' class='btn btn-sm btn-link'>Click here</a> to invite him!"; //href because Tag Helpers only work in Razor views — not inside strings.
                 return RedirectToAction("MoreInfo", new { id = DocumentId }); //return to the function with the document id
             }
 

@@ -3,7 +3,11 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
     <script type="text/javascript">
-        toastr.success('@TempData["success"]'); @*// to show the notification to the user*@
+        toastr.options.escapeHtml = false;
+        toastr.options.closeButton = true;
+        toastr.options.timeOut = 10000;
+
+        toastr.success("@Html.Raw(TempData["success"].ToString().Replace("\"", "\\\""))"); @*to show the notification to the user*@
     </script>
 }
 @if (TempData["error"] != null)
@@ -11,6 +15,10 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
     <script type="text/javascript">
-        toastr.error('@TempData["error"]'); @*// to show the notification to the user*@
+        toastr.options.escapeHtml = false;
+        toastr.options.closeButton = true;
+        toastr.options.timeOut = 10000;
+
+        toastr.error("@Html.Raw(TempData["error"].ToString().Replace("\"", "\\\""))"); @*to show the notification to the user*@
     </script>
 }
