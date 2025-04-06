@@ -53,6 +53,18 @@ builder.Services.AddAuthentication().AddCookie().AddGoogle(option =>
     option.SaveTokens = true;
 });
 
+//add sessions 
+builder.Services.AddDistributedMemoryCache(); //adds an in-memory cache service to the application (to save session data)
+builder.Services.AddSession(options => //registers the session service
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(100); //sets the timeout for the session. (if the user is inactive for 100 min, the session will expire and he will be logged out)
+    options.Cookie.HttpOnly = true; //sets the cookie to be accessible only through HTTP requests (not JavaScript) in order to avoid attacks by malicious scripts
+    options.Cookie.IsEssential = true; //session cookie essential for the application. in order to be used always
+});
+
+
+
+
 //to add google drive service
 builder.Services.AddSingleton<GoogleDriveService>();
 //add the AI functions
@@ -85,6 +97,7 @@ app.UseStaticFiles();
 app.UseRouting();
 app.UseAuthentication(); //if user username and pass is valid then go to use authorization
 app.UseAuthorization();
+app.UseSession(); //to use session in the application
 //here it will handle razor pages also
 app.MapRazorPages();
 // here are the default route if there is any error
