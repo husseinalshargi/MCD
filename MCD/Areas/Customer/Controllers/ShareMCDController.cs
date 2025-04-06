@@ -23,5 +23,9 @@ namespace MCD.Areas.Customer.Controllers
             _emailSender.SendEmailAsync(emailToShare, subject, htmlMessage);
             return View();
         }
+        public IActionResult Support()
+        {
+            return View();
+        }
     }
 }
