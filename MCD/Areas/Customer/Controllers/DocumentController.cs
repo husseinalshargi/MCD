@@ -134,7 +134,7 @@ namespace MCD.Areas.Customer.Controllers
             {
                 ApplicationUserId = userId,
                 userEmailAddress = _UnitOfWork.ApplicationUser.Get(u => u.Id == userId).Email,
-                Action = $"Gave ${SharedToUser.Email.ToLower()} Access",
+                Action = $"Gave {SharedToUser.Email.ToLower()} Access",
                 FileName = _UnitOfWork.Document.Get(u => u.Id == DocumentId).FileName,
                 ActionDate = DateTime.Now
             });

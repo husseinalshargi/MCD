@@ -41,8 +41,13 @@ namespace MCD.Areas.Customer.Controllers
 
                 var homePageVM = new HomePageVM()
                 {
-                    RecentDocuments = _UnitOfWork.Document.GetAll(u => u.ApplicationUserId == currentUser.Id).OrderByDescending(d => d.UpdateDate).ToList(),
-                    CurrentUser = currentUser
+                    RecentDocuments = _UnitOfWork.Document.GetAll(u => u.ApplicationUserId == currentUser.Id).OrderByDescending(d => d.UpdateDate).ToList(), //to show in the page recent updated documents
+                    CurrentUser = currentUser, //to see if he has password or he confirmed his account
+                    TotalDocuments = _UnitOfWork.Document.GetAll(u => u.ApplicationUserId == currentUser.Id).Count(),
+                    TotalSharedDocuments = _UnitOfWork.SharedDocument.GetAll(u => u.SharedFromId == userId).Count(),
+                    TotalSharedWithDocuments = _UnitOfWork.SharedDocument.GetAll(u => u.SharedToEmail.Trim().ToLower() == currentUser.Email.Trim().ToLower()).Count(),
+                    RecentSharedDocuments = _UnitOfWork.SharedDocument.GetAll(u => u.SharedToEmail.Trim().ToLower() == currentUser.Email.Trim().ToLower(), includeProperties : "Document").OrderByDescending(d => d.SharedAt).ToList(), //to show in the page recent shared documents
+                    auditLogs = _UnitOfWork.AuditLog.GetAll(u => u.ApplicationUserId == userId).OrderByDescending(d => d.ActionDate).ToList() //to show in the page recent logs in descending order
                 };
 
 

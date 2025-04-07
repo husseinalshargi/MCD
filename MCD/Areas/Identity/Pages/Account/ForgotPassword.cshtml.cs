@@ -70,12 +70,17 @@ namespace MCD.Areas.Identity.Pages.Account
                     pageHandler: null,
                     values: new { area = "Identity", code },
                     protocol: Request.Scheme);
-
+                try { 
                 await _emailSender.SendEmailAsync(
                     Input.Email,
                     "Reset Password",
                     $"Please reset your password by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
-
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex);
+                    TempData["error"] = "Error sending email. Please try again later or try another email..";
+                }
                 return RedirectToPage("./ForgotPasswordConfirmation");
             }
 

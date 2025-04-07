@@ -77,11 +77,17 @@ namespace MCD.Areas.Identity.Pages.Account
                 pageHandler: null,
                 values: new { userId = userId, code = code },
                 protocol: Request.Scheme);
+            try { 
             await _emailSender.SendEmailAsync(
                 Input.Email,
                 "Confirm your email",
                 $"Dear {user.FirstName},\n\nThank you for signing up with MyCleverDoc! To complete your registration, Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.\n\nIf you did not create an account with MyCleverDoc, please ignore this message.");
-
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                TempData["error"] = "Error sending email. Please try again later or try another email..";
+            }
             ModelState.AddModelError(string.Empty, "Verification email sent. Please check your email.");
             return Page();
         }

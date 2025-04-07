@@ -16,7 +16,7 @@
                     <h3 class="border-bottom pb-3 mb-4 text-bg-dark text-center">Create a new account.</h3>
                     <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
                     <div class="form-floating mb-3 col-md-12">
-                        <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com" />
+                        <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com" id="emailInput" />
                         <label asp-for="Input.Email" class="ms-2 text-dark">Email</label>
                         <span asp-validation-for="Input.Email" class="text-danger"></span>
                     </div>
@@ -99,12 +99,18 @@
                 $("#registerForm").submit(function (event) { //when submitting the form
                     var phoneNumber = $("#phoneNumberInput").val();
                     var phonePattern = /^05\d{8}$/; // Regex for 10-digit phone numbers starting with "05"
-
+                    var email = $("#emailInput").val();
+                    var emailPattern = /^[^@@\s]+@@[^@@\s]+\.[^@@\s]+$/;
                     if (!phonePattern.test(phoneNumber)) {
                         event.preventDefault(); // Stop form submission
                         toastr.error("Invalid phone number format! Please enter 05XXXXXXXX");
                     }
+                    if (!emailPattern.test(email)) {
+                        event.preventDefault(); // Stop form submission
+                        toastr.error("Invalid email format! Please enter a valid email address.");
+                    }
+                    
                 });
             });
-    </script>
+    </script>    
 }

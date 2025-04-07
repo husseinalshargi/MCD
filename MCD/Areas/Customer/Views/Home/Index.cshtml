@@ -1,13 +1,12 @@
 ﻿@using MCD.Models.ViewModels
 @model HomePageVM
 
-
-
-<body>
-    <div class="message-container">
+<div class="container py-4">
+    <div class="mb-4">
         @if (!Model.CurrentUser.EmailConfirmed)
         {
-            <div class="alert alert-warning alert-dismissible fade show mt-3 text-center" role="alert">
+            <div class="alert alert-warning alert-dismissible fade show mt-3 text-center shadow-sm border-start border-warning border-4" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
                 <strong>Warning!</strong> Your email is not confirmed.
                 <a href="/Identity/Account/Manage/Email" class="alert-link">Click here</a> to send the confirmation email.
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
@@ -15,40 +14,200 @@
         }
         @if (Model.CurrentUser.PasswordHash == null)
         {
-            <div class="alert alert-warning alert-dismissible fade show mt-3 text-center" role="alert">
+            <div class="alert alert-warning alert-dismissible fade show mt-3 text-center shadow-sm border-start border-warning border-4" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
                 <strong>Warning!</strong> You don't have a password.
                 <a href="/Identity/Account/Manage/SetPassword" class="alert-link">Click here</a> to create a password for MCD account.
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         }
     </div>
-    <h1 class="mt-4">Welcome to MCD!</h1>
-    <h4 class="mt-4">For all documents, go to the Documents tab.</h4>
-    <div class="container mt-5">
-        <h5 class="text-center mb-2">Most recent updated documents</h5>
-        <div class="row">
-            @for (int i = 0; i < Model.RecentDocuments.Count; i++) //to show the most recent 12 documents
+
+<div class="welcome-header py-5 mb-5 bg-light rounded-3 shadow-sm">
+    <div class="container">
+        <div class="row align-items-center">
+            <!-- Left Section (Text) -->
+            <div class="col-lg-8 text-center text-lg-start">
+                <div class="d-flex align-items-center mb-4">
+                    <i class="bi bi-file-earmark-text-fill text-primary fs-1 me-3"></i>
+                    <h1 class="display-3 fw-bold text-primary mb-0">Welcome to MCD!</h1>
+                </div>
+                <p class="lead text-secondary mb-3">Your secure document management system. Access and share your documents from anywhere.</p>
+            </div>
+
+            <!-- Right Section (User Info) -->
+            <div class="col-lg-4 d-none d-lg-block mt-4 mt-lg-0">
+                <div class="p-4 bg-white rounded-3 shadow-sm">
+                    <h5 class="mb-3 text-dark">Hello, @Model.CurrentUser.FirstName!</h5>
+                    <p class="text-muted mb-2">@Model.CurrentUser.Email</p>
+                    <div class="d-flex justify-content-start">
+                        <a href="/Identity/Account/Manage" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-gear me-1"></i> Account Settings
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+    
+    <!--info about user's documents-->
+    <div class="row mb-4 g-3">
+        <div class="col-md-4">
+            <div class="card border-0 bg-primary bg-opacity-10 h-100">
+                <a asp-area="Customer" asp-controller="Home" asp-action="Document"
+                            class="btn w-100 h-100 d-flex flex-column align-items-center justify-content-center p-3 shadow-sm hover-shadow">
+                <div class="card-body text-center">
+                    <i class="bi bi-file-earmark-text display-1 text-primary mb-2"></i>
+                    <h2 class="card-title fw-bold">@Model.TotalDocuments</h2>
+                    <p class="card-text fs-5">Total Documents</p>
+                </div>
+                </a>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 bg-success bg-opacity-10 h-100">
+                <a asp-area="Customer" asp-controller="Home" asp-action="AccessManagements"
+                            class="btn w-100 h-100 d-flex flex-column align-items-center justify-content-center p-3 shadow-sm hover-shadow">
+                <div class="card-body text-center">
+                    <i class="bi bi-share display-1 text-success mb-2"></i>
+                    <h2 class="card-title fw-bold">@Model.TotalSharedDocuments</h2>
+                    <p class="card-text fs-5">Documents You Shared</p>
+                </div>
+                </a>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 bg-info bg-opacity-10 h-100">
+                <a asp-area="Customer" asp-controller="Document" asp-action="SharedDocuments"
+                        class="btn w-100 h-100 d-flex flex-column align-items-center justify-content-center p-3 shadow-sm hover-shadow">
+                <div class="card-body text-center">
+                    <i class="bi bi-box-arrow-in-down display-1 text-info mb-2"></i>
+                    <h2 class="card-title fw-bold">@Model.TotalSharedWithDocuments</h2>
+                    <p class="card-text fs-5">Shared With You</p>
+                </div>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!--recent documents-->
+    <div class="bg-light p-4 rounded-3 shadow-sm mb-4">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+            <h5 class="mb-0 pb-2 border-bottom border-2 border-primary d-inline-block">Most recent updated documents</h5>
+            <a asp-area="Customer" asp-controller="Document" asp-action="SharedDocuments" class="btn btn-sm btn-outline-primary">View All</a>
+        </div>
+        
+        <div class="row g-3">
+            @for (int i = 0; i < Model.RecentDocuments.Count; i++) //to show the most recent 8 documents
             {
-                <div class="col text-center mb-2">
-                    <button onclick="openDocument('@Model.RecentDocuments[i].ApplicationUserId', '@Model.RecentDocuments[i].Id', '@Model.RecentDocuments[i].FileName')" class="btn btn-primary w-100">@Model.RecentDocuments[i].FileName</button> @*show documents as buttons 3 at each row*@
+                <div class="col-md-3 col-sm-6">
+                    <button onclick="openDocument('@Model.RecentDocuments[i].ApplicationUserId', '@Model.RecentDocuments[i].Id', '@Model.RecentDocuments[i].FileName')" 
+                            class="btn btn-outline-primary w-100 h-100 d-flex flex-column align-items-center justify-content-center p-3 shadow-sm hover-shadow">
+                        <i class="bi bi-file-earmark-text fs-3 mb-2"></i>
+                        <span class="text-truncate w-100">@Model.RecentDocuments[i].FileName</span>
+                    </button>
                 </div>
 
                 @if ((i + 1) % 4 == 0)
                 {
-                    @:</div><div class="row"> @*start a new row after 4 buttons*@
+                    @:</div><div class="row g-3"> @*start a new row after 4 buttons*@
                 }
-                if (i == 7) //to show only 12 documents then break
+                if (i == 7) //to show only 8 documents then break
                 {
                     break;
                 }
             }
+            @if (Model.RecentDocuments.Count == 0)
+            {
+                <div class="col-12 text-center py-4">
+                    <i class="bi bi-info-circle fs-1 text-muted"></i>
+                    <p class="mt-2 text-muted">No documents found.</p>
+                    <a asp-area="Customer" asp-controller="Home" asp-action="Document" class="btn btn-sm btn-outline-primary">Go To Upload Section</a>
+                </div>
+            }
+        </div>
     </div>
+    
+    <!--Latest Shared Documents Section-->
+    <div class="bg-light p-4 rounded-3 shadow-sm mb-4">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+            <h5 class="mb-0 pb-2 border-bottom border-2 border-success d-inline-block">Latest shared documents</h5>
+            <a asp-area="Customer" asp-controller="Document" asp-action="SharedDocuments" class="btn btn-sm btn-outline-success">View All</a>
+        </div>
+        
+        <div class="row g-3">
+            @for (int i = 0; i < Model.RecentSharedDocuments.Count; i++) //to show the most recent shared documents
+            {
+                <div class="col-md-3 col-sm-6">
+                    <button onclick="openDocument('@Model.RecentSharedDocuments[i].Document.ApplicationUserId', '@Model.RecentSharedDocuments[i].Document.Id', '@Model.RecentSharedDocuments[i].Document.FileName')" 
+                            class="btn btn-outline-success w-100 h-100 d-flex flex-column align-items-center justify-content-center p-3 shadow-sm hover-shadow">
+                        <i class="bi bi-share fs-3 mb-2"></i>
+                        <span class="text-truncate w-100">@Model.RecentSharedDocuments[i].Document.FileName</span>
+                    </button>
+                </div>
+
+                @if ((i + 1) % 4 == 0)
+                {
+                    @:</div><div class="row g-3"> @*start a new row after 4 buttons*@
+                }
+                if (i == 7) //to show only 8 documents then break
+                {
+                    break;
+                }
+            }
+            
+            @if (Model.RecentSharedDocuments.Count == 0)
+            {
+                <div class="col-12 text-center py-4">
+                    <i class="bi bi-info-circle fs-1 text-muted"></i>
+                    <p class="mt-2 text-muted">No shared documents found.</p>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!--Recent Activity Section-->
+    <div class="bg-light p-4 rounded-3 shadow-sm">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+            <h5 class="mb-0 pb-2 border-bottom border-2 border-secondary d-inline-block">Recent Activity</h5>
+            <a asp-area="Customer" asp-controller="Logs" asp-action="AuditLogs" class="btn btn-sm btn-outline-secondary">View All</a>
+        </div>
+        
+        <ul class="list-group list-group-flush">
+            @foreach (var activity in Model.auditLogs.Take(8)) @*to take only 8 logs to show*@
+            {
+                <li class="list-group-item bg-transparent d-flex align-items-center gap-3 py-3">
+
+                    <div class="bg-info bg-opacity-10 p-2 rounded-circle">
+                        <i class="bi bi-share text-info"></i>
+                    </div>
+                    <div>
+                        <h5 class="mb-0 fw-bold text-dark">@activity.userEmailAddress</h5>
+                        <p class="text-muted mb-1">Document: <strong>@activity.FileName</strong></p>
+                        <p class="text-muted mb-1">Action: <span class="text-primary">@activity.Action</span></p>
+                        <small class="text-muted d-block">@activity.ActionDate.ToString("MMM dd, yyyy HH:mm")</small>
+                    </div>
+                </li>
+            }
+            
+            @if (Model.auditLogs == null || !Model.auditLogs.Any())
+            {
+                <li class="list-group-item bg-transparent text-center py-4">
+                    <i class="bi bi-info-circle fs-1 text-muted"></i>
+                    <p class="mt-2 text-muted">No recent activity found.</p>
+                </li>
+            }
+
+        </ul>
+    </div>
+
+
 </div>
-</body>
 
 @section scripts {
     <script>
-            function openDocument(userId, documentId, fileName) { // a function to call inside render for getting html in the table
+        function openDocument(userId, documentId, fileName) { // a function to call inside render for getting html in the table
             $.ajax({
                 url: `/Customer/home/GetDocument?userId=${userId}&documentId=${documentId}&fileName=${fileName}`, //in order to use the same fumction in the home controller to open the document (to avoid duplication)
                 type: 'GET',
@@ -66,4 +225,13 @@
             });
         }
     </script>
+    
+    <style>
+        /* Just one small custom style that's not available in Bootstrap */
+        .hover-shadow:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
+            transition: all .3s;
+        }
+    </style>
 }
