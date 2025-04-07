@@ -1,17 +1,18 @@
 <div class="container">
     <button id="exportButton">Export Logs</button>
 </div>
-<table id="auditLogsTable" class="table table-bordered table-striped" style="width:100%">
-    <thead>
-        <tr>
-            <th>User Email</th>
-            <th>Action</th>
-            <th>FileName</th>
-            <th>Timestamp</th>
-        </tr>
-    </thead>
-</table>
-
+<div class="table-responsive shadow-sm">
+    <table id="auditLogsTable" class="table table-hover table-sm align-middle">
+        <thead class="table-dark">
+            <tr>
+                <th scope="col">User Email</th>
+                <th scope="col">Action</th>
+                <th scope="col">FileName</th>
+                <th scope="col">Timestamp</th>
+            </tr>
+        </thead>
+    </table>
+</div>
 
 @section Scripts {
     <script src="~/js/AuditLogs.js"></script>
