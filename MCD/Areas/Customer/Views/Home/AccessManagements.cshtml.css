@@ -1,10 +1,43 @@
-table {
-    width: 100%; /* Table takes full width of the container */
-    border-collapse: collapse; /* Removes extra spacing between borders */
-}
-
-th, td {
-    border: 1px solid black; /* Adds borders to cells */
-    padding: 10px;
-    text-align: center;
-}
+/* Add this to your CSS file (e.g., Index.cshtml.css) */
+#accessManagementsTable {
+    width: 100%;
+    border-collapse: collapse;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    font-family: system-ui, -apple-system, sans-serif;
+  }
+  
+  #accessManagementsTable thead {
+    background-color: #f3f4f6;
+  }
+  
+  #accessManagementsTable th {
+    padding: 12px 15px;
+    text-align: left;
+    font-weight: 600;
+    color: #ffffff;
+    border-bottom: 2px solid #e5e7eb;
+  }
+  
+  #accessManagementsTable td {
+    padding: 10px 15px;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  
+  #accessManagementsTable tbody tr:hover {
+    background-color: #f9fafb;
+  }
+  
+  /* For zebra striping */
+  #accessManagementsTable tbody tr:nth-child(even) {
+    background-color: #f9fafb;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    #accessManagementsTable {
+      display: block;
+      overflow-x: auto;
+    }
+  }

@@ -9,7 +9,7 @@
 
 <div class="text-center">
 
-    <button class="uploadDocument" onclick="openPopup()">Upload a document</button>
+    <button class="btn btn-info mx-2" onclick="openPopup()">Upload a document</button>
 
     <table id="tblData" class="table table-bordered table-striped" style="width:100%">
         <thead>
@@ -37,14 +37,14 @@
             </div>
             
             <label asp-for="DocumentFile">Choose files</label>
-            <button type="button" onclick="closePopup()">Close</button>
+            <button class="btn btn-info mx-2" type="button" onclick="closePopup()">Close</button>
             
             <div class="uploadOptions">
                 <input type="checkbox" asp-for="Summarize" id="checkboxSummarize">
                 <label asp-for="Summarize">Summarize the extracted text</label>
             </div>
             
-            <button type="submit">Upload to Storage</button>
+            <button class="btn btn-info mx-2" type="submit">Upload to Storage</button>
 
             <div id="fileList" class="file-list"></div>
         </div>

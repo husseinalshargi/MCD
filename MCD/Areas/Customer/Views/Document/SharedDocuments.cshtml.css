@@ -1,5 +1,5 @@
 /* Add this to your CSS file (e.g., Index.cshtml.css) */
-#auditLogsTable {
+#sharedDocumentsTable {
     width: 100%;
     border-collapse: collapse;
     border-radius: 8px;
@@ -8,11 +8,11 @@
     font-family: system-ui, -apple-system, sans-serif;
   }
   
-  #auditLogsTable thead {
+  #sharedDocumentsTable thead {
     background-color: #f3f4f6;
   }
   
-  #auditLogsTable th {
+  #sharedDocumentsTable th {
     padding: 12px 15px;
     text-align: left;
     font-weight: 600;
@@ -20,23 +20,23 @@
     border-bottom: 2px solid #e5e7eb;
   }
   
-  #auditLogsTable td {
+  #sharedDocumentsTable td {
     padding: 10px 15px;
     border-bottom: 1px solid #e5e7eb;
   }
   
-  #auditLogsTable tbody tr:hover {
+  #sharedDocumentsTable tbody tr:hover {
     background-color: #f9fafb;
   }
   
   /* For zebra striping */
-  #auditLogsTable tbody tr:nth-child(even) {
+  #sharedDocumentsTable tbody tr:nth-child(even) {
     background-color: #f9fafb;
   }
   
   /* Responsive adjustments */
   @media (max-width: 768px) {
-    #auditLogsTable {
+    #sharedDocumentsTable {
       display: block;
       overflow-x: auto;
     }
