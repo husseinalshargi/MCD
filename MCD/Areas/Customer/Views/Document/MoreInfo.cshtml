@@ -87,156 +87,165 @@
 </div>
 
 <div class="container mt-5">
-    <div class="row g-4">
+    <div class="row">
         <!-- First row - first two sections side by side -->
-        <div class="col-md-6 mb-3">
-            <!-- Share Document section -->
-            <form method="post" asp-action="UploadSharedDocument" enctype="multipart/form-data">
-                <h2>Share Document</h2>
-                <input type="hidden" name="DocumentID" value="@Model.Document.Id" />
-                <!-- Rest of the share document form -->
-                <table id="addShared" class="addShared" style="width:100%">
-                    <!-- Table content -->
-                    <thead id="addSharedHead">
-                        <tr>
-                            <th>User Email to Share document</th>
-                            <th>Share</th>
-                        </tr>
-                    </thead>
-                    <tbody id="addShareBody">
-                        <tr class="spacer-row"><td colspan="3"></td></tr>
-                        <tr>
-                            <td>
-                                <label class="ms-2">Email</label>
-                                <input name="SharedToEmail" class="form-control border-0 shadow"
-                                required
-                                type="email"
-                                placeholder="Enter a valid email" />
-                                <span class="text-danger"></span>
-                            </td>
-                            <td>
-                                <button type="submit" class="btn btn-secondary">
-                                    <i class="bi bi-share-fill"></i> - Share to Other User
-                                </button>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </form>
+        <div class="col-md-6 pe-md-2">
+            <div class="card bg-secondary mb-3 section-box" id="shareBlock">
+                <div class="p-4 me-2">
+                    <!-- Share Document section -->
+                    <form method="post" asp-action="UploadSharedDocument" enctype="multipart/form-data">
+                        <h2 id="shareH2" class="text-center">Share Document</h2>
+                        <input type="hidden" name="DocumentID" value="@Model.Document.Id" />
+                        <!-- Rest of the share document form -->
+                        <table id="addShared" class="addShared" style="width:100%">
+                            <!-- Table content -->
+                            <tbody id="addShareBody">
+                                <tr class="spacer-row"><td colspan="3"></td></tr>
+                                <tr>
+                                    <td>
+                                        <input name="SharedToEmail" class="form-control border-0 shadow"
+                                        required
+                                        type="email"
+                                        placeholder="Enter a valid email" />
+                                        <span class="text-danger"></span>
+                                    </td>
+                                    <td>
+                                        <button type="submit" class="btn btn-light">
+                                            <i class="bi bi-share-fill"></i> - Share to Other User
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </form>
+                </div>
+            </div>
         </div>
 
-        <div class="col-md-6 mb-3">
-            <!-- Convert To Text section -->
-            <div id="OCRPart">
-                <h2>Convert To Text</h2>
-                @if (!Model.isConverted)
-                {
-                    <form method="post" asp-action="ConvertToText" enctype="multipart/form-data">
-                        <input type="hidden" name="DocumentID" value="@Model.Document.Id" />
-                        <div class="col text-center button-container">
-                            <button type="submit" class="btn btn-secondary">Convert</button>
-                        </div>
-                    </form>
-                }
-                else
-                {
-                    <div class="col text-center button-container d-flex justify-content-center gap-2">
-                        <!-- Rest of the convert section -->
-                        <button onclick="openDocument('@Model.Document.ApplicationUserId', '@Model.Document.Id', '@($"{System.IO.Path.GetFileNameWithoutExtension(Model.Document.FileName)}_converted.txt")')"
-                        class="btn btn-light mb-2 ">
-                            Show Converted File
-                        </button>
-                        <form method="post" asp-action="DownloadFile" enctype="multipart/form-data">
-                            <input type="hidden" name="DocumentID" value="@Model.Document.Id" />
-                            <input type="hidden" name="downloadConverted" value="true" />
-                            <div class="col text-center button-container">
-                                <button type="submit" class="btn btn-dark"><i class="bi bi-download"></i> Download converted file</button>
+        <div class="col-md-6 ps-md-2">
+            <div class="card bg-outline-dark mb-3 section-box">
+                <div class="p-4">
+                    <!-- Convert To Text section -->
+                    <div id="OCRPart">
+                        <h2 class="text-center">Convert To Text</h2>
+                        @if (!Model.isConverted)
+                        {
+                            <form method="post" asp-action="ConvertToText" enctype="multipart/form-data">
+                                <input type="hidden" name="DocumentID" value="@Model.Document.Id" />
+                                <div class="col text-center button-container">
+                                    <button type="submit" class="btn btn-secondary">Convert</button>
+                                </div>
+                            </form>
+                        }
+                        else
+                        {
+                            <div class="col text-center button-container d-flex justify-content-center gap-2">
+                                <!-- Rest of the convert section -->
+                                <button onclick="openDocument('@Model.Document.ApplicationUserId', '@Model.Document.Id', '@($"{System.IO.Path.GetFileNameWithoutExtension(Model.Document.FileName)}_converted.txt")')"
+                                class="btn btn-secondary mb-2 ">
+                                    Show Converted File
+                                </button>
+                                <form method="post" asp-action="DownloadFile" enctype="multipart/form-data">
+                                    <input type="hidden" name="DocumentID" value="@Model.Document.Id" />
+                                    <input type="hidden" name="downloadConverted" value="true" />
+                                    <div class="col text-center button-container">
+                                        <button type="submit" class="btn btn-dark"><i class="bi bi-download"></i> Download converted file</button>
+                                    </div>
+                                </form>
+                                <form asp-action="DeleteDocument" enctype="multipart/form-data">
+                                    <input type="hidden" name="DocumentID" value="@Model.Document.Id" />
+                                    <input type="hidden" name="deleteConverted" value="true" />
+                                    <button type="submit" class="btn btn-danger mb-2 "><i class="bi bi-trash-fill"></i> Delete Converted File</button>
+                                </form>
                             </div>
-                        </form>
-                        <form asp-action="DeleteDocument" enctype="multipart/form-data">
-                            <input type="hidden" name="DocumentID" value="@Model.Document.Id" />
-                            <input type="hidden" name="deleteConverted" value="true" />
-                            <button type="submit" class="btn btn-danger mb-2 "><i class="bi bi-trash-fill"></i> Delete Converted File</button>
-                        </form>
+                        }
                     </div>
-                }
+                </div>
             </div>
         </div>
 
         <!-- Second row - second two sections side by side -->
-        <div class="col-md-6 mb-3">
-            <!-- Summarization section -->
-            <div id="sumPart">
-                <h2>Summarization</h2>
-                @if (!Model.isSummarized)
-                {
-                    <form method="post" asp-action="SummarizeDocument" enctype="multipart/form-data">
-                        <input type="hidden" name="DocumentID" value="@Model.Document.Id" />
-                        <div class="col text-center button-container">
-                            <button type="submit" class="btn btn-secondary">Summarize</button>
-                        </div>
-                    </form>
-                }
-                else
-                {
-                    <div class="col text-center button-container d-flex justify-content-center gap-2">
-                        <!-- Rest of the summarization section -->
-                        <button onclick="openDocument('@Model.Document.ApplicationUserId', '@Model.Document.Id', '@($"{System.IO.Path.GetFileNameWithoutExtension(Model.Document.FileName)}_Summarized.txt")')"
-                                class="btn btn-light">
-                            Show Summarized File
-                        </button>
-                        <form method="post" asp-action="DownloadFile" enctype="multipart/form-data">
-                            <input type="hidden" name="DocumentID" value="@Model.Document.Id" />
-                            <input type="hidden" name="downloadSummarized" value="true" />
-                            <div class="col text-center button-container">
-                                <button type="submit" class="btn btn-dark"><i class="bi bi-download"></i> Download summarized file</button>
+        <div class="col-md-6 pe-md-2">
+            <div class="card bg-outline-dark mb-3 section-box">
+                <div class="p-4 me-2">
+                    <!-- Summarization section -->
+                    <div id="sumPart">
+                        <h2 class="text-center">Summarization</h2>
+                        @if (!Model.isSummarized)
+                        {
+                            <form method="post" asp-action="SummarizeDocument" enctype="multipart/form-data">
+                                <input type="hidden" name="DocumentID" value="@Model.Document.Id" />
+                                <div class="col text-center button-container">
+                                    <button type="submit" class="btn btn-secondary">Summarize</button>
+                                </div>
+                            </form>
+                        }
+                        else
+                        {
+                            <div class="col text-center button-container d-flex justify-content-center gap-2">
+                                <!-- Rest of the summarization section -->
+                                <button onclick="openDocument('@Model.Document.ApplicationUserId', '@Model.Document.Id', '@($"{System.IO.Path.GetFileNameWithoutExtension(Model.Document.FileName)}_Summarized.txt")')"
+                                        class="btn btn-secondary">
+                                    Show Summarized File
+                                </button>
+                                <form method="post" asp-action="DownloadFile" enctype="multipart/form-data">
+                                    <input type="hidden" name="DocumentID" value="@Model.Document.Id" />
+                                    <input type="hidden" name="downloadSummarized" value="true" />
+                                    <div class="col text-center button-container">
+                                        <button type="submit" class="btn btn-dark"><i class="bi bi-download"></i> Download summarized file</button>
+                                    </div>
+                                </form>
+                                <form asp-action="DeleteDocument" enctype="multipart/form-data">
+                                    <input type="hidden" name="DocumentID" value="@Model.Document.Id" />
+                                    <input type="hidden" name="deleteSummarized" value="true" />
+                                    <button type="submit" class="btn btn-danger"><i class="bi bi-trash-fill"></i> Delete Summarized File</button>
+                                </form>
                             </div>
-                        </form>
-                        <form asp-action="DeleteDocument" enctype="multipart/form-data">
-                            <input type="hidden" name="DocumentID" value="@Model.Document.Id" />
-                            <input type="hidden" name="deleteSummarized" value="true" />
-                            <button type="submit" class="btn btn-danger"><i class="bi bi-trash-fill"></i> Delete Summarized File</button>
-                        </form>
+                        }
                     </div>
-                }
+                </div>
             </div>
         </div>
 
-        <div class="col-md-6 mb-3">
-            <!-- Entities section -->
-            <div id="EntitiesPart">
-                <h2>Entities</h2>
-                @if (!Model.isExtracted)
-                {
-                    <form method="post" asp-action="GetEntities" enctype="multipart/form-data">
-                        <input type="hidden" name="DocumentID" value="@Model.Document.Id" />
-                        <div class="col text-center button-container">
-                            <button type="submit" class="btn btn-secondary">Get Entities</button>
-                        </div>
-                    </form>
-                }
-                else
-                {
-                    <div class="col text-center button-container d-flex justify-content-center gap-2">
-                        <!-- Rest of the entities section -->
-                        <button onclick="openDocument('@Model.Document.ApplicationUserId', '@Model.Document.Id', '@($"{System.IO.Path.GetFileNameWithoutExtension(Model.Document.FileName)}_entities.txt")')"
-                        class="btn btn-light mb-2 ">
-                            Show extracted entities File
-                        </button>
-                        <form method="post" asp-action="DownloadFile" enctype="multipart/form-data">
-                            <input type="hidden" name="DocumentID" value="@Model.Document.Id" />
-                            <input type="hidden" name="downloadExtracted" value="true" />
-                            <div class="col text-center button-container">
-                                <button type="submit" class="btn btn-dark"><i class="bi bi-download"></i> Download extracted entities file</button>
+        <div class="col-md-6 ps-md-2">
+            <div class="card bg-secondary mb-3 section-box">
+                <div class="p-4">
+                    <!-- Entities section -->
+                    <div id="EntitiesPart">
+                        <h2 id="entitiesH2" class="text-center">Entities</h2>
+                        @if (!Model.isExtracted)
+                        {
+                            <form method="post" asp-action="GetEntities" enctype="multipart/form-data">
+                                <input type="hidden" name="DocumentID" value="@Model.Document.Id" />
+                                <div class="col text-center button-container">
+                                    <button type="submit" class="btn btn-light">Get Entities</button>
+                                </div>
+                            </form>
+                        }
+                        else
+                        {
+                            <div class="col text-center button-container d-flex justify-content-center gap-2">
+                                <!-- Rest of the entities section -->
+                                <button onclick="openDocument('@Model.Document.ApplicationUserId', '@Model.Document.Id', '@($"{System.IO.Path.GetFileNameWithoutExtension(Model.Document.FileName)}_entities.txt")')"
+                                class="btn btn-lgiht mb-2 ">
+                                    Show extracted entities File
+                                </button>
+                                <form method="post" asp-action="DownloadFile" enctype="multipart/form-data">
+                                    <input type="hidden" name="DocumentID" value="@Model.Document.Id" />
+                                    <input type="hidden" name="downloadExtracted" value="true" />
+                                    <div class="col text-center button-container">
+                                        <button type="submit" class="btn btn-dark"><i class="bi bi-download"></i> Download extracted entities file</button>
+                                    </div>
+                                </form>
+                                <form asp-action="DeleteDocument" enctype="multipart/form-data">
+                                    <input type="hidden" name="DocumentID" value="@Model.Document.Id" />
+                                    <input type="hidden" name="deleteExtracted" value="true" />
+                                    <button type="submit" class="btn btn-danger mb-2 "><i class="bi bi-trash-fill"></i> Delete extracted entites File</button>
+                                </form>
                             </div>
-                        </form>
-                        <form asp-action="DeleteDocument" enctype="multipart/form-data">
-                            <input type="hidden" name="DocumentID" value="@Model.Document.Id" />
-                            <input type="hidden" name="deleteExtracted" value="true" />
-                            <button type="submit" class="btn btn-danger mb-2 "><i class="bi bi-trash-fill"></i> Delete extracted entites File</button>
-                        </form>
+                        }
                     </div>
-                }
+                </div>
             </div>
         </div>
     </div>
@@ -248,7 +257,6 @@
         </a>
     </div>
 </div>
-
 
 
 

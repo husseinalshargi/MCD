@@ -45,9 +45,83 @@ h2 {
     border-bottom: 1px solid #eee;
 }
 
-/* Add more space between rows on smaller screens */
-@media (max-width: 768px) {
-    .col-md-6 {
-        margin-bottom: 30px !important;
+#shareBlock {
+    color:#fff;
+}
+
+#shareH2 {
+    color: #fff;
+}
+
+#ِEntitiesPart {
+    color:#fff;
+}
+
+#entitiesH2 {
+    color: #fff;
+}
+
+/* Add to your Index.cshtml.css */
+.section-box {
+    min-height: 300px; /* Make sections bigger */
+}
+
+.section-box > div {
+    height: 100%; /* Make the inner content fill the section */
+}
+
+h2 {
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.bg-secondary h2 {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+}
+
+/* Make sure the sections have equal height in each row */
+@media (min-width: 768px) {
+    .row {
+        display: flex;
+        flex-wrap: wrap;
+    }
+    
+    .row::after {
+        content: "";
+        flex: auto;
+    }
+    
+    .row > [class*="col-"] {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .row > [class*="col-"] > div {
+        flex-grow: 1;
+    }
+}
+
+/* Fix button alignment in entities section */
+#EntitiesPart .btn-lgiht {
+    background-color: #f8f9fa;
+    border-color: #f8f9fa;
+}
+/* Add to your Index.cshtml.css */
+.row > div {
+    min-height: 300px; /* Make sections bigger */
+}
+
+/* Ensure the gap is consistent on mobile */
+@media (max-width: 767.98px) {
+    .row > div .p-4 {
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+    
+    /* Add some space between sections on mobile */
+    .row > div {
+        margin-bottom: 1rem !important;
     }
 }
