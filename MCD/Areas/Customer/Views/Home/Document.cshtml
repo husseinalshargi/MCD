@@ -1,86 +1,190 @@
 ﻿@using MCD.Models.ViewModels
 @model DocumentVM
 
-<style>
-    .popup, .overlay {
-        display: none;
-    }
-</style>
-
-<div class="text-center">
-
-    <button class="btn btn-info mx-2" onclick="openPopup()">Upload a document</button>
-
-    <table id="tblData" class="table table-bordered table-striped" style="width:100%">
-        <thead>
-            <tr>
-                <th>Document</th>
-                <th>Title</th>
-                <th>File Name</th>
-                <th>Upload Date</th>
-                <th>Update Date</th>
-                <th>Category</th>
-                <th>More Info</th>
-            </tr>
-        </thead>
-    </table>
-
-
-    <div class="overlay" id="overlay" onclick="closePopup()"></div>
-    <form method="post" asp-area="Customer" asp-controller="Home" asp-action="UploadDocument" enctype="multipart/form-data">
-        <div class="popup" id="popup">
-            <p>The accepted types are: PDF and PNG</p>
-            
-            <div id="dropArea" class="drop-area">
-                <p>Drag & Drop files here or click to select</p>
-                <input type="file" asp-for="DocumentFile" id="newFile" multiple hidden>
-            </div>
-            
-            <label asp-for="DocumentFile">Choose files</label>
-            <button class="btn btn-info mx-2" type="button" onclick="closePopup()">Close</button>
-            
-            <div class="uploadOptions">
-                <input type="checkbox" asp-for="Summarize" id="checkboxSummarize">
-                <label asp-for="Summarize">Summarize the extracted text</label>
-            </div>
-            
-            <button class="btn btn-info mx-2" type="submit">Upload to Storage</button>
-
-            <div id="fileList" class="file-list"></div>
+<div class="container py-4">
+    <!--page header-->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 pb-3 border-bottom">
+        <div class="mb-3 mb-md-0">
+            <h1 class="h3 mb-2 text-primary">Document Management</h1>
+            <p class="text-muted mb-0">View, upload and manage your documents</p>
         </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-primary shadow-sm hover-shadow" onclick="openPopup()">
+                <i class="bi bi-cloud-upload me-2"></i>Upload Document
+            </button>
+            <a asp-area="Customer" asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary shadow-sm hover-shadow">
+                <i class="bi bi-arrow-return-left me-2"></i>Back to Home
+            </a>
+        </div>
+    </div>
 
-        <a href="/customer/home/index" class="btn btn-info mx-2"> <i class="bi bi-arrow-return-left"></i> Back </a>
+    <!--document statistics-->
+    <div class="row mb-4 g-3">
+        @*g -> gap between divs*@
+        <div class="col-6 col-md-3 col-lg">
+            <div class="card border-0 bg-primary bg-opacity-10 h-100 ">
+                <div class="btn p-3 shadow-sm hover-shadow">
+                    @*to make it hover*@
+                    <div class="card-body text-center">
+                        <i class="bi bi-file-earmark-text fs-1 text-primary mb-2"></i>
+                        <h3 class="card-title fw-bold">@Model.TotalDocuments</h3>
+                        <p class="card-text">Total Documents</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3 col-lg">
+            <div class="card border-0 bg-success bg-opacity-10 h-100">
+                <div class="btn p-3 shadow-sm hover-shadow">@*to make it hover*@
+                    <div class="card-body text-center">
+                        <i class="bi bi-file-earmark-pdf fs-1 text-success mb-2"></i>
+                        <h3 class="card-title fw-bold">@Model.pdfCount</h3>
+                        <p class="card-text">PDF Documents</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3 col-lg">
+            <div class="card border-0 bg-danger bg-opacity-10 h-100">
+                <div class="btn p-3 shadow-sm hover-shadow">
+                    @*to make it hover*@
+                    <div class="card-body text-center">
+                        <i class="bi bi-file-earmark-font fs-1 text-danger mb-2"></i>
+                        <h3 class="card-title fw-bold">@Model.textCount</h3>
+                        <p class="card-text">Text Files</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3 col-lg">
+            <div class="card border-0 bg-info bg-opacity-10 h-100">
+                <div class="btn p-3 shadow-sm hover-shadow">@*to make it hover*@
+                    <div class="card-body text-center">
+                        <i class="bi bi-file-earmark-image fs-1 text-info mb-2"></i>
+                        <h3 class="card-title fw-bold">@Model.imageCount</h3>
+                        <p class="card-text">Image Files</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
+    <!--documents table-->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white py-3">
+            <h5 class="mb-0 text-primary">Your Documents</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table id="tblData" class="table table-striped table-hover" style="width:100%">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Document</th>
+                            <th>Title</th>
+                            <th>File Name</th>
+                            <th>Upload Date</th>
+                            <th>Update Date</th>
+                            <th>Category</th>
+                            <th>More Info</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!--dataTables will populate this-->
+                    </tbody>
+                </table>
+            </div>
+            <div class="d-block d-md-none mt-3"> @*'d-md-none': hides the div on medium screens and larger (>=768px).*@
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-2"></i>Swipe horizontally to see more columns
+                </div>
+            </div>
+        </div>
+    </div>
 
+    <!--upload modal overlay-->
+    <div class="modal-backdrop fade" id="overlay" style="display: none;"></div>
+
+    <!--upload form-->
+    <form method="post" asp-area="Customer" asp-controller="Home" asp-action="UploadDocument" enctype="multipart/form-data">
+        <div class="modal fade show" id="uploadModal" tabindex="-1" aria-labelledby="uploadModalLabel" style="display: none;">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header bg-primary bg-opacity-10">
+                        <h5 class="modal-title text-primary" id="uploadModalLabel">
+                            <i class="bi bi-cloud-upload me-2"></i>Upload Documents
+                        </h5>
+                        <button type="button" class="btn-close" onclick="closePopup()" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+
+                        <div id="dropArea" class="border-2 border-dashed rounded-3 p-5 mb-3 text-center bg-light">
+                            <i class="bi bi-cloud-arrow-up display-4 text-primary mb-3"></i>
+                            <p class="mb-2">Drag & Drop files here or click to select</p>
+                            <p class="text-muted small">All kinds of documents in one place</p>
+                            <input type="file" asp-for="DocumentFile" id="newFile" multiple hidden>
+                        </div>
+
+                        <div id="fileList" class="list-group mb-3">
+                            <!--selected files will appear here-->
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary shadow-sm hover-shadow" onclick="closePopup()">
+                            <i class="bi bi-x-circle me-2"></i>Cancel
+                        </button>
+                        <button type="submit" class="btn btn-primary shadow-sm hover-shadow">
+                            <i class="bi bi-cloud-upload me-2"></i>Upload to Storage
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </form>
+</div>
+
+@section Scripts {
+    <script src="~/js/Document.js"></script>
     <script>
         function openPopup() {
-            document.getElementById("popup").style.display = "block";
+            document.getElementById("uploadModal").style.display = "block";
             document.getElementById("overlay").style.display = "block";
+            document.getElementById("uploadModal").classList.add("show");
+            document.getElementById("overlay").classList.add("show");
+            document.body.classList.add("modal-open");
         }
 
         function closePopup() {
-            document.getElementById("popup").style.display = "none";
+            document.getElementById("uploadModal").style.display = "none";
             document.getElementById("overlay").style.display = "none";
+            document.getElementById("uploadModal").classList.remove("show");
+            document.getElementById("overlay").classList.remove("show");
+            document.body.classList.remove("modal-open");
         }
+
         const dropArea = document.getElementById("dropArea");
         const fileInput = document.getElementById("newFile");
         const fileList = document.getElementById("fileList");
 
         dropArea.addEventListener("click", () => fileInput.click());
-        
+
         dropArea.addEventListener("dragover", (event) => {
             event.preventDefault();
-            dropArea.classList.add("highlight");
+            dropArea.classList.add("bg-primary");
+            dropArea.classList.add("bg-opacity-10");
+            dropArea.classList.add("border-primary");
         });
 
         dropArea.addEventListener("dragleave", () => {
-            dropArea.classList.remove("highlight");
+            dropArea.classList.remove("bg-primary");
+            dropArea.classList.remove("bg-opacity-10");
+            dropArea.classList.remove("border-primary");
         });
 
         dropArea.addEventListener("drop", (event) => {
             event.preventDefault();
-            dropArea.classList.remove("highlight");
+            dropArea.classList.remove("bg-primary");
+            dropArea.classList.remove("bg-opacity-10");
+            dropArea.classList.remove("border-primary");
 
             if (event.dataTransfer.files.length > 0) {
                 fileInput.files = event.dataTransfer.files;
@@ -96,18 +200,44 @@
             fileList.innerHTML = "";
             Array.from(files).forEach(file => {
                 const fileItem = document.createElement("div");
-                fileItem.classList.add("file-item");
-                fileItem.textContent = file.name;
+                fileItem.classList.add("list-group-item", "d-flex", "justify-content-between", "align-items-center");
+
+                const fileIcon = document.createElement("i");
+                if (file.type === "application/pdf") {
+                    fileIcon.classList.add("bi", "bi-file-earmark-pdf", "text-danger", "me-2");
+                } else if (file.type.startsWith("image/")) {
+                    fileIcon.classList.add("bi", "bi-file-earmark-image", "text-primary", "me-2");
+                } else {
+                    fileIcon.classList.add("bi", "bi-file-earmark", "text-secondary", "me-2");
+                }
+
+                const fileName = document.createElement("span");
+                fileName.textContent = file.name;
+
+                const fileSize = document.createElement("span");
+                fileSize.classList.add("badge", "bg-light", "text-dark");
+                fileSize.textContent = formatFileSize(file.size);
+
+                fileItem.appendChild(fileIcon);
+                fileItem.appendChild(fileName);
+                fileItem.appendChild(fileSize);
                 fileList.appendChild(fileItem);
             });
         }
+
+        function formatFileSize(bytes) {
+            if (bytes < 1024) return bytes + " bytes";
+            else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + " KB";
+
+            else return (bytes / 1048576).toFixed(1) + " MB";
+        }
     </script>
-</div>
-
-
-
-
-
-@section Scripts{
-    <script src="~/js/Document.js"></script>
+    <style>
+        /* Just one small custom style that's not available in Bootstrap */ @*to make buttons hover*@
+        .hover-shadow:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 .5rem 1rem rgba(0,0,0,.15) !important;
+            transition: all .3s;
+        }
+    </style>
 }

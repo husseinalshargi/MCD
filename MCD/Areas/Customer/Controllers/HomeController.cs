@@ -146,7 +146,11 @@ namespace MCD.Areas.Customer.Controllers
 
             var viewModel = new DocumentVM //as we will handle showing the documents and update new ones in the same place we will need a view model as we can't pass more than one model in the same page
             {
-                documents = DocumentList
+                documents = DocumentList,
+                TotalDocuments = DocumentList.Count(), //to show the number of documents in the view
+                pdfCount = DocumentList.Count(u => u.FileType == "application/pdf"), //to show the number of pdf documents in the view
+                textCount = DocumentList.Count(u => u.FileType == "text/plain"), //to show the number of text documents in the view
+                imageCount = DocumentList.Count(u => u.FileType == "image/jpeg" || u.FileType == "image/png" || u.FileType == "image/jpg"), //to show the number of image documents in the view
             };
 
             return View(viewModel);

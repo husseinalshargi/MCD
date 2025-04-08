@@ -1,19 +1,49 @@
-<div class="container">
-    <button id="exportButton">Export Logs</button>
-</div>
-<div class="table-responsive shadow-sm">
-    <table id="auditLogsTable" class="table table-hover table-sm align-middle">
-        <thead class="table-dark">
-            <tr>
-                <th scope="col">User Email</th>
-                <th scope="col">Action</th>
-                <th scope="col">FileName</th>
-                <th scope="col">Timestamp</th>
-            </tr>
-        </thead>
-    </table>
+<div class="container py-4">
+    <!--page header-->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 pb-3 border-bottom">
+        <div class="mb-3 mb-md-0">
+            <h1 class="h3 mb-2 text-primary">Audit Logs</h1>
+            <p class="text-muted mb-0">Activity regarding your documents</p>
+        </div>
+        <a asp-area="Customer" asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary shadow-sm hover-shadow">
+            <i class="bi bi-arrow-return-left me-2"></i>Back to Home
+        </a>
+    </div>
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white py-3">
+            <h5 class="mb-0 text-primary">Your Logs</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table id="auditLogsTable" class="table table-hover table-sm align-middle">
+                    <thead class="table-dark">
+                        <tr>
+                            <th scope="col">User Email</th>
+                            <th scope="col">Action</th>
+                            <th scope="col">FileName</th>
+                            <th scope="col">Timestamp</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+        </div>
+        <div class="d-block d-md-none mt-3">
+            @*d-md-none: hides the div on medium screens and larger (>=768px).*@
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle me-2"></i>Swipe horizontally to see more columns
+            </div>
+        </div>
+    </div>
 </div>
 
 @section Scripts {
     <script src="~/js/AuditLogs.js"></script>
+    <style>
+        /* Just one small custom style that's not available in Bootstrap */ @*to make buttons hover*@
+        .hover-shadow:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 .5rem 1rem rgba(0,0,0,.15) !important;
+            transition: all .3s;
+        }
+    </style>
 }
