@@ -1,22 +1,29 @@
 <div class="container py-4">
     <!--page header-->
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 pb-3 border-bottom">
-        <div class="mb-3 mb-md-0">
-            <h1 class="h3 mb-2 text-primary">Account Management</h1>
-            <p class="text-muted mb-0">Manage MCD Accounts</p>
+    <!-- Page Header -->
+    <div class="bg-light rounded-3 p-4 mb-4 shadow-sm">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+            <div class="d-flex align-items-center">
+                <div>
+                    <h1 class="h3 mb-1 fw-bold text-primary">Account Management</h1>
+                    <p class="text-muted mb-0">Manage MCD Accounts</p>
+                </div>
+            </div>
+            <div>
+                <a asp-area="Customer" asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary w-100 shadow-sm hover-shadow">
+                    <i class="bi bi-arrow-return-left me-2"></i>Back to Home
+                </a>
+            </div>
         </div>
-        <a asp-area="Customer" asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary shadow-sm hover-shadow">
-            <i class="bi bi-arrow-return-left me-2"></i>Back to Home
-        </a>
     </div>
     <div class="card shadow-sm mb-4">
         <div class="card-header bg-white py-3">
-            <h5 class="mb-0 text-primary">MCD Users</h5>
+            <h5 class="mb-0 text-primary fw-semibold">MCD Users</h5>
         </div>
         <div class="card-body">
             <div class="table-responsive">
-                <table id="userManagementTable" class="table table-bordered table-striped" style="width:100%">
-                    <thead>
+                <table id="userManagementTable" class="table table-hover table-striped table-bordered table-sm align-middle text-nowrap">
+                    <thead class="table-dark">
                         <tr>
                             <th>First Name</th>
                             <th>Last Name</th>
@@ -32,7 +39,7 @@
         </div>
         <div class="d-block d-md-none mt-3">
             @*d-md-none: hides the div on medium screens and larger (>=768px).*@
-            <div class="alert alert-info">
+            <div class="alert alert-info mb-0">
                 <i class="bi bi-info-circle me-2"></i>Swipe horizontally to see more columns
             </div>
         </div>

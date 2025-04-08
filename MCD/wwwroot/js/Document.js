@@ -2,7 +2,12 @@
 $(document).ready(function () {
     loadDataTable();
 })
-
+$(window).scroll(function () {
+    $('#scrollTopBtn').toggleClass('d-none', $(this).scrollTop() < 200);
+});
+$('#scrollTopBtn').click(function () {
+    $('html, body').animate({ scrollTop: 0 }, 'slow');
+});
 function loadDataTable() {
     dataTable = $('#tblData').DataTable({
         "ajax": { url: '/Customer/home/getall' },

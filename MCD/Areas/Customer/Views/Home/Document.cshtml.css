@@ -1,18 +1,55 @@
-table {
-    width: 100%; /* Table takes full width of the container */
-    border-collapse: collapse; /* Removes extra spacing between borders */
+#tblData {
+    width: 100%;
+    border-collapse: collapse;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    font-family: system-ui, -apple-system, sans-serif;
 }
 
-th, td {
-    border: 1px solid black; /* Adds borders to cells */
-    padding: 10px;
-    text-align: center;
+    #tblData thead {
+        background-color: #f3f4f6;
+    }
+
+    #tblData th {
+        padding: 12px 15px;
+        text-align: left;
+        font-weight: 600;
+        color: #ffffff;
+        border-bottom: 2px solid #e5e7eb;
+    }
+
+    #tblData td {
+        padding: 10px 15px;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    #tblData tbody tr:hover {
+        background-color: #f9fafb;
+    }
+
+    /* For zebra striping */
+    #tblData tbody tr:nth-child(even) {
+        background-color: #f9fafb;
+    }
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    #tblData {
+        display: block;
+        overflow-x: auto;
+    }
 }
-th {
-    background-color: rgb(145, 145, 145);
-    color: #fff;
-    text-align: center !important;
-    vertical-align: middle !important;
+/* Centering the button */
+#scrollTopBtn {
+    position: fixed;
+    top: 95%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 .popup {
     display: none; /* Initially hidden */
@@ -30,10 +67,10 @@ th {
     color: black !important;
 }
 
-.popup button {
-    margin-top: 10px;
-    padding: 5px 10px;
-}
+    .popup button {
+        margin-top: 10px;
+        padding: 5px 10px;
+    }
 
 /* Background overlay */
 .overlay {
@@ -46,7 +83,6 @@ th {
     background: rgba(0, 0, 0, 0.5);
     z-index: 999;
     color: black !important;
-
 }
 
 .uploadDocument {
@@ -64,12 +100,15 @@ th {
     margin-bottom: 10px;
     align-items: center;
 }
-.drop-area.highlight {
-    border-color: #000;
-}
+
+    .drop-area.highlight {
+        border-color: #000;
+    }
+
 .file-list {
     margin-top: 10px;
 }
+
 .file-item {
     padding: 5px;
     border: 1px solid #ccc;

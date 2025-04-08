@@ -1,21 +1,29 @@
-﻿<div class="container py-4">
-    <!--page header-->
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 pb-3 border-bottom">
-        <div class="mb-3 mb-md-0">
-            <h1 class="h3 mb-2 text-primary">Shared Document</h1>
-            <p class="text-muted mb-0">View documents shared with you</p>
+﻿<div class="container-lg py-4">
+    <!-- Page Header -->
+    <div class="bg-light rounded-3 p-4 mb-4 shadow-sm">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+            <div class="d-flex align-items-center">
+                <div>
+                    <h1 class="h3 mb-1 fw-bold text-primary">Shared Documents</h1>
+                    <p class="text-muted mb-0">View documents shared with you</p>
+                </div>
+            </div>
+            <div>
+                <a asp-area="Customer" asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary w-100 shadow-sm hover-shadow">
+                    <i class="bi bi-arrow-return-left me-2"></i>Back to Home
+                </a>
+            </div>
         </div>
-        <a asp-area="Customer" asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary shadow-sm hover-shadow">
-            <i class="bi bi-arrow-return-left me-2"></i>Back to Home
-        </a>
     </div>
+
+
     <div class="card shadow-sm mb-4">
         <div class="card-header bg-white py-3">
-            <h5 class="mb-0 text-primary">Documents Shared With You</h5>
+            <h5 class="mb-0 text-primary fw-semibold">Documents Shared With You</h5>
         </div>
         <div class="card-body">
             <div class="table-responsive">
-                <table id="sharedDocumentsTable" class="table table-hover table-sm align-middle">
+                <table id="sharedDocumentsTable" class="table table-hover table-striped table-bordered table-sm align-middle text-nowrap">
                     <thead class="table-dark">
                         <tr>
                             <th scope="col">Document</th>
@@ -28,9 +36,25 @@
                 </table>
             </div>
         </div>
-        <div class="d-block d-md-none mt-3"> @*'d-md-none': hides the div on medium screens and larger (>=768px).*@
-            <div class="alert alert-info">
+        <div class="d-block d-md-none mt-3"> <!-- 'd-md-none': hides the div on medium screens and larger (>=768px) -->
+            <div class="alert alert-info mb-0">
                 <i class="bi bi-info-circle me-2"></i>Swipe horizontally to see more columns
+            </div>
+        </div>
+    </div>
+
+    <!-- Help Card -->
+    <div class="card shadow-sm border-0 bg-light">
+        <div class="card-body">
+            <div class="d-flex align-items-start">
+                <div class="bg-primary bg-opacity-10 p-2 rounded-circle me-3">
+                    <i class="bi bi-question-circle text-dark fs-4 "></i>
+                </div>
+                <div>
+                    <h5 class="card-title">Need Help?</h5>
+                    <p class="card-text mb-0">If you have any questions about MCD, please contact our support team in the email below.</p>
+                    <a href="mailto:mycleverdoc@hotmail.com" class="btn btn-sm btn-link ps-0">Contact Support</a>
+                </div>
             </div>
         </div>
     </div>
@@ -39,8 +63,7 @@
 
 @section Scripts {
     <script src="~/js/SharedDocuments.js"></script>
-    <style>
-        /* Just one small custom style that's not available in Bootstrap */ @*to make buttons hover*@
+    <style> /* Custom hover effect for buttons */
         .hover-shadow:hover {
             transform: translateY(-3px);
             box-shadow: 0 .5rem 1rem rgba(0,0,0,.15) !important;

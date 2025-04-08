@@ -1,110 +1,61 @@
 ﻿@using MCD.Models.ViewModels
 @model DocumentVM
 
-<div class="container py-4">
-    <!--page header-->
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 pb-3 border-bottom">
-        <div class="mb-3 mb-md-0">
-            <h1 class="h3 mb-2 text-primary">Document Management</h1>
-            <p class="text-muted mb-0">View, upload and manage your documents</p>
-        </div>
-        <div class="d-flex gap-2">
-            <button class="btn btn-primary shadow-sm hover-shadow" onclick="openPopup()">
-                <i class="bi bi-cloud-upload me-2"></i>Upload Document
-            </button>
-            <a asp-area="Customer" asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary shadow-sm hover-shadow">
-                <i class="bi bi-arrow-return-left me-2"></i>Back to Home
-            </a>
-        </div>
-    </div>
+<div class="container-lg py-4">
+    <div class="bg-light rounded-3 p-4 mb-4 shadow-sm">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+            <div class="d-flex align-items-center">
+                <div>
+                    <h1 class="h3 mb-1 fw-bold text-primary">Document Management</h1>
+                    <p class="text-muted mb-0">View, upload and manage your documents</p>
+                </div>
+            </div>
 
-    <!--document statistics-->
-    <div class="row mb-4 g-3">
-        @*g -> gap between divs*@
-        <div class="col-6 col-md-3 col-lg">
-            <div class="card border-0 bg-primary bg-opacity-10 h-100 ">
-                <div class="btn p-3 shadow-sm hover-shadow">
-                    @*to make it hover*@
-                    <div class="card-body text-center">
-                        <i class="bi bi-file-earmark-text fs-1 text-primary mb-2"></i>
-                        <h3 class="card-title fw-bold">@Model.TotalDocuments</h3>
-                        <p class="card-text">Total Documents</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-6 col-md-3 col-lg">
-            <div class="card border-0 bg-success bg-opacity-10 h-100">
-                <div class="btn p-3 shadow-sm hover-shadow">@*to make it hover*@
-                    <div class="card-body text-center">
-                        <i class="bi bi-file-earmark-pdf fs-1 text-success mb-2"></i>
-                        <h3 class="card-title fw-bold">@Model.pdfCount</h3>
-                        <p class="card-text">PDF Documents</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-6 col-md-3 col-lg">
-            <div class="card border-0 bg-danger bg-opacity-10 h-100">
-                <div class="btn p-3 shadow-sm hover-shadow">
-                    @*to make it hover*@
-                    <div class="card-body text-center">
-                        <i class="bi bi-file-earmark-font fs-1 text-danger mb-2"></i>
-                        <h3 class="card-title fw-bold">@Model.textCount</h3>
-                        <p class="card-text">Text Files</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-6 col-md-3 col-lg">
-            <div class="card border-0 bg-info bg-opacity-10 h-100">
-                <div class="btn p-3 shadow-sm hover-shadow">@*to make it hover*@
-                    <div class="card-body text-center">
-                        <i class="bi bi-file-earmark-image fs-1 text-info mb-2"></i>
-                        <h3 class="card-title fw-bold">@Model.imageCount</h3>
-                        <p class="card-text">Image Files</p>
-                    </div>
-                </div>
+            <div class="d-flex gap-2 flex-nowrap">
+                <button class="btn btn-outline-primary shadow-sm hover-shadow" onclick="openPopup()" style="white-space: nowrap;">
+                    <i class="bi bi-cloud-upload me-2"></i>Upload Document
+                </button>
+                <a asp-area="Customer" asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary shadow-sm hover-shadow" style="white-space: nowrap;">
+                    <i class="bi bi-arrow-return-left me-2"></i>Back to Home
+                </a>
             </div>
         </div>
     </div>
 
-    <!--documents table-->
+    <!-- Documents Table -->
     <div class="card shadow-sm mb-4">
         <div class="card-header bg-white py-3">
-            <h5 class="mb-0 text-primary">Your Documents</h5>
+            <h5 class="mb-0 text-primary fw-semibold">Your Documents</h5>
         </div>
         <div class="card-body">
             <div class="table-responsive">
-                <table id="tblData" class="table table-striped table-hover" style="width:100%">
-                    <thead class="table-light">
+                <table id="tblData" class="table table-hover table-striped table-bordered table-sm align-middle text-nowrap">
+                    <thead class="table-dark">
                         <tr>
-                            <th>Document</th>
-                            <th>Title</th>
-                            <th>File Name</th>
-                            <th>Upload Date</th>
-                            <th>Update Date</th>
-                            <th>Category</th>
-                            <th>More Info</th>
+                            <th scope="col">Document</th>
+                            <th scope="col">Title</th>
+                            <th scope="col">File Name</th>
+                            <th scope="col">Upload Date</th>
+                            <th scope="col">Update Date</th>
+                            <th scope="col">Category</th>
+                            <th scope="col">More Info</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <!--dataTables will populate this-->
-                    </tbody>
                 </table>
             </div>
-            <div class="d-block d-md-none mt-3"> @*'d-md-none': hides the div on medium screens and larger (>=768px).*@
-                <div class="alert alert-info">
+            <div class="d-block d-md-none mt-3">
+                @*'d-md-none': hides the div on medium screens and larger (>=768px).*@
+                <div class="alert alert-info mb-0">
                     <i class="bi bi-info-circle me-2"></i>Swipe horizontally to see more columns
                 </div>
             </div>
         </div>
     </div>
 
-    <!--upload modal overlay-->
+    <!-- Upload Modal Overlay -->
     <div class="modal-backdrop fade" id="overlay" style="display: none;"></div>
 
-    <!--upload form-->
+    <!-- Upload Form -->
     <form method="post" asp-area="Customer" asp-controller="Home" asp-action="UploadDocument" enctype="multipart/form-data">
         <div class="modal fade show" id="uploadModal" tabindex="-1" aria-labelledby="uploadModalLabel" style="display: none;">
             <div class="modal-dialog modal-dialog-centered modal-lg">
@@ -125,7 +76,7 @@
                         </div>
 
                         <div id="fileList" class="list-group mb-3">
-                            <!--selected files will appear here-->
+                            <!-- Selected files will appear here -->
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -140,6 +91,24 @@
             </div>
         </div>
     </form>
+    <button type="button" class="btn btn-secondary text-center m-3 shadow-sm hover-shadow" id="scrollTopBtn" aria-label="Scroll to Top">
+        <i class="bi bi-arrow-up fs-4"></i>
+    </button>
+    <!-- Help Card -->
+    <div class="card shadow-sm border-0 bg-light">
+        <div class="card-body">
+            <div class="d-flex align-items-start">
+                <div class="bg-primary bg-opacity-10 p-2 rounded-circle me-3">
+                    <i class="bi bi-question-circle text-dark fs-4 "></i>
+                </div>
+                <div>
+                    <h5 class="card-title">Need Help?</h5>
+                    <p class="card-text mb-0">If you have any questions about MCD, please contact our support team in the email below.</p>
+                    <a href="mailto:mycleverdoc@hotmail.com" class="btn btn-sm btn-link ps-0">Contact Support</a>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 @section Scripts {
@@ -228,16 +197,15 @@
         function formatFileSize(bytes) {
             if (bytes < 1024) return bytes + " bytes";
             else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + " KB";
-
             else return (bytes / 1048576).toFixed(1) + " MB";
         }
     </script>
     <style>
-        /* Just one small custom style that's not available in Bootstrap */ @*to make buttons hover*@
+        /* Custom hover effect for buttons */
         .hover-shadow:hover {
             transform: translateY(-3px);
             box-shadow: 0 .5rem 1rem rgba(0,0,0,.15) !important;
             transition: all .3s;
         }
     </style>
-}
+    }
