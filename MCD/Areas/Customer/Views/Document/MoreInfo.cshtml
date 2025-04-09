@@ -9,64 +9,74 @@
     <input type="hidden" name="DocumentID" value="@Model.Document.Id" />
     <!-- passing the name so that we don't just create a new one later with the same name-->
     <input type="hidden" name="CategoryName" value="@Model.Document.Category.CategoryName" />
-    <table id="moreInfoTable" class="moreInfoTable" style="width:100%">
-        <thead id="moreInfoHead">
-            <tr>
-                <th>Author</th>
-                <th>File Name</th>
-                <th>Title</th>
-                <th>Category</th>
-                <th>Upload Date</th>
-                <th>Update Date</th>
-                <th>Update</th>
-            </tr>
-        </thead>
-        <tbody id="moreInfoBody">
-            <tr class="spacer-row"><td colspan="3"></td></tr>
-            <tr>
-                <td .disabled>@Model.Document.ApplicationUser.Email</td>
-                <td .disbaled>@Model.Document.FileName</td>
-                <td>
-                    <input name="Title" type="text" class="form-control border-0 shadow"
-                    maxlength="50" required value="@Model.Document.Title" placeholder="@Model.Document.Title">
-                </td>
-                <td>
-                    <select name="Category" id="CategoryDropdown" class="form-control border-0 shadow" required onchange="toggleNewCategoryField()">
-                        <option value="">Select a Category</option>
-                        @foreach (var category in Model.CategoryList)
-                        {
-                            @if (category.Id == Model.Document.CategoryId)
+    <div class="table-responsive">
+        <table id="moreInfoTable" class="table table-sm align-middle text-nowrap" style="width:100%">
+            <thead id="moreInfoHead">
+                <tr>
+                    <th>Author</th>
+                    <th>File Name</th>
+                    <th>Title</th>
+                    <th>Category</th>
+                    <th>Upload Date</th>
+                    <th>Update Date</th>
+                    <th>Update</th>
+                </tr>
+            </thead>
+            <tbody id="moreInfoBody">
+                <tr>
+                    <td .disabled>@Model.Document.ApplicationUser.Email</td>
+                    <td .disbaled>@Model.Document.FileName</td>
+                    <td>
+                        <input name="Title" type="text" class="form-control border-0 shadow"
+                               maxlength="50" required value="@Model.Document.Title" placeholder="@Model.Document.Title">
+                    </td>
+                    <td>
+                        <select name="Category" id="CategoryDropdown" class="form-control border-0 shadow" required onchange="toggleNewCategoryField()">
+                            <option value="">Select a Category</option>
+                            @foreach (var category in Model.CategoryList)
                             {
-                                <option value="@category.Id" selected>
-                                    @category.CategoryName
-                                </option>
-                            }
-                            else
-                            {
-                                <option value="@category.Id">
-                                    @category.CategoryName
-                                </option>
-                            }
+                                @if (category.Id == Model.Document.CategoryId)
+                                {
+                                    <option value="@category.Id" selected>
+                                        @category.CategoryName
+                                    </option>
+                                }
+                                else
+                                {
+                                    <option value="@category.Id">
+                                        @category.CategoryName
+                                    </option>
+                                }
 
-                        }
-                        <option value="new">Add New Category</option> <!-- Option to add new category -->
-                    </select>
-                </td>
-                <td .disbaled>@Model.Document.UploadDate</td>
-                <td .disbaled>@Model.Document.UpdateDate</td>
+                            }
+                            <option value="new">Add New Category</option> <!-- Option to add new category -->
+                        </select>
+                    </td>
+                    <td .disbaled>@Model.Document.UploadDate</td>
+                    <td .disbaled>@Model.Document.UpdateDate</td>
 
-                <td><button type="submit" class="btn btn-secondary">Update</button></td>
-            </tr>
-            <tr>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td>
-                    <input name="NewCategory" id="NewCategoryInput" type="text" class="form-control border-0 shadow" maxlength="30" placeholder="Enter New Category" style="display:none;">
-                </td>
-            </tr>
-        </tbody>
-    </table>
+                    <td><button type="submit" class="btn btn-secondary">Update</button></td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td>
+                        <input name="NewCategory" id="NewCategoryInput" type="text" class="form-control border-0 shadow" maxlength="30" placeholder="Enter New Category" style="display:none;">
+                    </td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="d-block d-md-none mt-3">
+        @*'d-md-none': hides the div on medium screens and larger (>=768px).*@
+        <div class="alert alert-info mb-0">
+            <i class="bi bi-info-circle me-2"></i>Swipe horizontally to see more columns
+        </div>
+    </div>
 </form>
 <div class="col text-center d-flex justify-content-center align-items-center gap-2 mt-2">
     <button onclick="openDocument('@Model.Document.ApplicationUserId', '@Model.Document.Id', '@Model.Document.FileName')" class="btn btn-secondary">
@@ -103,16 +113,16 @@
                                 <tr class="spacer-row"><td colspan="3"></td></tr>
                                 <tr>
                                     <td>
-                                        <input name="SharedToEmail" class="form-control border-0 shadow"
-                                        required
-                                        type="email"
-                                        placeholder="Enter a valid email" />
-                                        <span class="text-danger"></span>
-                                    </td>
-                                    <td>
-                                        <button type="submit" class="btn btn-light">
-                                            <i class="bi bi-share-fill"></i> - Share to Other User
-                                        </button>
+                                        <div class="d-flex flex-column flex-md-row gap-2">
+                                            <input name="SharedToEmail" class="form-control border-0 shadow w-100"
+                                                   required
+                                                   type="email"
+                                                   placeholder="Enter a valid email" />
+                                            <span class="text-danger"></span>
+                                            <button type="submit" class="btn btn-light ">
+                                                <i class="bi bi-share-fill"></i> - Share to Other User
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             </tbody>
@@ -139,23 +149,25 @@
                         }
                         else
                         {
-                            <div class="col text-center button-container d-flex justify-content-center gap-2">
+                            <div class="col text-center button-container d-flex flex-column flex-md-row justify-content-md-between align-items-stretch gap-2">
                                 <!-- Rest of the convert section -->
-                                <button onclick="openDocument('@Model.Document.ApplicationUserId', '@Model.Document.Id', '@($"{System.IO.Path.GetFileNameWithoutExtension(Model.Document.FileName)}_converted.txt")')"
-                                class="btn btn-secondary mb-2 ">
-                                    Show Converted File
-                                </button>
-                                <form method="post" asp-action="DownloadFile" enctype="multipart/form-data">
+                                <div class="d-flex flex-fill">
+                                    <button onclick="openDocument('@Model.Document.ApplicationUserId', '@Model.Document.Id', '@($"{System.IO.Path.GetFileNameWithoutExtension(Model.Document.FileName)}_converted.txt")')"
+                                            class="btn btn-secondary mb-2 w-100">
+                                        Show Converted File
+                                    </button>
+                                </div>
+                                <form method="post" asp-action="DownloadFile" enctype="multipart/form-data" class="d-flex flex-fill">
                                     <input type="hidden" name="DocumentID" value="@Model.Document.Id" />
                                     <input type="hidden" name="downloadConverted" value="true" />
                                     <div class="col text-center button-container">
-                                        <button type="submit" class="btn btn-dark"><i class="bi bi-download"></i> Download converted file</button>
+                                        <button type="submit" class="btn btn-dark w-100"><i class="bi bi-download"></i> Download converted </button>
                                     </div>
                                 </form>
-                                <form asp-action="DeleteDocument" enctype="multipart/form-data">
+                                <form asp-action="DeleteDocument" enctype="multipart/form-data" class="d-flex flex-fill">
                                     <input type="hidden" name="DocumentID" value="@Model.Document.Id" />
                                     <input type="hidden" name="deleteConverted" value="true" />
-                                    <button type="submit" class="btn btn-danger mb-2 "><i class="bi bi-trash-fill"></i> Delete Converted File</button>
+                                    <button type="submit" class="btn btn-danger mb-2 w-100 "><i class="bi bi-trash-fill"></i> Delete Converted </button>
                                 </form>
                             </div>
                         }
@@ -182,23 +194,25 @@
                         }
                         else
                         {
-                            <div class="col text-center button-container d-flex justify-content-center gap-2">
+                            <div class="col text-center button-container d-flex flex-column flex-md-row justify-content-md-between align-items-stretch gap-2">
                                 <!-- Rest of the summarization section -->
-                                <button onclick="openDocument('@Model.Document.ApplicationUserId', '@Model.Document.Id', '@($"{System.IO.Path.GetFileNameWithoutExtension(Model.Document.FileName)}_Summarized.txt")')"
-                                        class="btn btn-secondary">
-                                    Show Summarized File
-                                </button>
-                                <form method="post" asp-action="DownloadFile" enctype="multipart/form-data">
+                                <div class="d-flex flex-fill">
+                                    <button onclick="openDocument('@Model.Document.ApplicationUserId', '@Model.Document.Id', '@($"{System.IO.Path.GetFileNameWithoutExtension(Model.Document.FileName)}_Summarized.txt")')"
+                                            class="btn btn-secondary w-100">
+                                        Show Summarized
+                                    </button>
+                                </div>
+                                <form method="post" asp-action="DownloadFile" enctype="multipart/form-data" class="d-flex flex-fill">
                                     <input type="hidden" name="DocumentID" value="@Model.Document.Id" />
                                     <input type="hidden" name="downloadSummarized" value="true" />
                                     <div class="col text-center button-container">
-                                        <button type="submit" class="btn btn-dark"><i class="bi bi-download"></i> Download summarized file</button>
+                                        <button type="submit" class="btn btn-dark w-100"><i class="bi bi-download"></i> Download summarized</button>
                                     </div>
                                 </form>
-                                <form asp-action="DeleteDocument" enctype="multipart/form-data">
+                                <form asp-action="DeleteDocument" enctype="multipart/form-data" class="d-flex flex-fill">
                                     <input type="hidden" name="DocumentID" value="@Model.Document.Id" />
                                     <input type="hidden" name="deleteSummarized" value="true" />
-                                    <button type="submit" class="btn btn-danger"><i class="bi bi-trash-fill"></i> Delete Summarized File</button>
+                                    <button type="submit" class="btn btn-danger w-100"><i class="bi bi-trash-fill"></i> Delete Summarized</button>
                                 </form>
                             </div>
                         }
@@ -224,23 +238,25 @@
                         }
                         else
                         {
-                            <div class="col text-center button-container d-flex justify-content-center gap-2">
+                            <div class="col text-center button-container d-flex flex-column flex-md-row justify-content-md-between align-items-stretch gap-2">
                                 <!-- Rest of the entities section -->
-                                <button onclick="openDocument('@Model.Document.ApplicationUserId', '@Model.Document.Id', '@($"{System.IO.Path.GetFileNameWithoutExtension(Model.Document.FileName)}_entities.txt")')"
-                                class="btn btn-lgiht mb-2 ">
-                                    Show extracted entities File
-                                </button>
-                                <form method="post" asp-action="DownloadFile" enctype="multipart/form-data">
+                                <div class="d-flex flex-fill">
+                                    <button onclick="openDocument('@Model.Document.ApplicationUserId', '@Model.Document.Id', '@($"{System.IO.Path.GetFileNameWithoutExtension(Model.Document.FileName)}_entities.txt")')"
+                                            class="btn btn-light mb-2 w-100">
+                                        Show extracted entities
+                                    </button>
+                                </div>
+                                <form method="post" asp-action="DownloadFile" enctype="multipart/form-data" class="d-flex flex-fill">
                                     <input type="hidden" name="DocumentID" value="@Model.Document.Id" />
                                     <input type="hidden" name="downloadExtracted" value="true" />
                                     <div class="col text-center button-container">
-                                        <button type="submit" class="btn btn-dark"><i class="bi bi-download"></i> Download extracted entities file</button>
+                                        <button type="submit" class="btn btn-dark w-100"><i class="bi bi-download"></i> Download extracted entities </button>
                                     </div>
                                 </form>
-                                <form asp-action="DeleteDocument" enctype="multipart/form-data">
+                                <form asp-action="DeleteDocument" enctype="multipart/form-data" class="d-flex flex-fill">
                                     <input type="hidden" name="DocumentID" value="@Model.Document.Id" />
                                     <input type="hidden" name="deleteExtracted" value="true" />
-                                    <button type="submit" class="btn btn-danger mb-2 "><i class="bi bi-trash-fill"></i> Delete extracted entites File</button>
+                                    <button type="submit" class="btn btn-danger mb-2 w-100"><i class="bi bi-trash-fill"></i> Delete extracted entities </button>
                                 </form>
                             </div>
                         }
@@ -252,8 +268,8 @@
 
     <div class="text-center mt-4 mb-5">
         <!-- Back button moved outside the grid -->
-        <a href="/customer/home/document" class="btn btn-info mx-2"> 
-            <i class="bi bi-arrow-return-left"></i> Back 
+        <a href="/customer/home/document" class="btn btn-info mx-2">
+            <i class="bi bi-arrow-return-left"></i> Back
         </a>
     </div>
 </div>
