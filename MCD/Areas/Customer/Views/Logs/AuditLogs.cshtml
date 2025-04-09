@@ -1,6 +1,5 @@
 <div class="container py-4">
     <!--page header-->
-    <!-- Page Header -->
     <div class="bg-light rounded-3 p-4 mb-4 shadow-sm">
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
             <div class="d-flex align-items-center">
@@ -20,14 +19,14 @@
         <div class="card-header bg-white py-3">
             <h5 class="mb-0 text-primary fw-semibold">Your Logs</h5>
         </div>
-        <div class="card-body">
+        <div class="card-body"> @*using data tables*@
             <div class="table-responsive">
                 <table id="auditLogsTable" class="table table-hover table-striped table-bordered table-sm align-middle text-nowrap">
                     <thead class="table-dark">
                         <tr>
                             <th scope="col">User Email</th>
                             <th scope="col">Action</th>
-                            <th scope="col">FileName</th>
+                            <th scope="col">File Name</th>
                             <th scope="col">Timestamp</th>
                         </tr>
                     </thead>
@@ -51,7 +50,9 @@
                 <div>
                     <h5 class="card-title">Need Help?</h5>
                     <p class="card-text mb-0">If you have any questions about MCD, please contact our support team in the email below.</p>
-                    <a href="mailto:mycleverdoc@hotmail.com" class="btn btn-sm btn-link ps-0">Contact Support</a>
+                    <a href="mailto:mycleverdoc@hotmail.com" class="btn btn-sm btn-link ps-0 text-decoration-none">
+                        <i class="bi bi-envelope me-1"></i>Contact Support
+                    </a>
                 </div>
             </div>
         </div>

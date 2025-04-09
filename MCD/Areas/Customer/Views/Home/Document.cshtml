@@ -22,6 +22,58 @@
         </div>
     </div>
 
+    <!--document statistics-->
+    <div class="row mb-4 g-3">
+        @*g -> gap between divs*@
+        <div class="col-6 col-md-3 col-lg">
+            <div class="card border-0 bg-primary bg-opacity-10 h-100 ">
+                <div class="btn p-3 shadow-sm hover-shadow">
+                    @*to make it hover*@
+                    <div class="card-body text-center">
+                        <i class="bi bi-file-earmark-text fs-1 text-primary mb-2"></i>
+                        <h3 class="card-title fw-bold">@Model.TotalDocuments</h3>
+                        <p class="card-text">Total Documents</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3 col-lg">
+            <div class="card border-0 bg-success bg-opacity-10 h-100">
+                <div class="btn p-3 shadow-sm hover-shadow">@*to make it hover*@
+                    <div class="card-body text-center">
+                        <i class="bi bi-file-earmark-pdf fs-1 text-success mb-2"></i>
+                        <h3 class="card-title fw-bold">@Model.pdfCount</h3>
+                        <p class="card-text">PDF Documents</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3 col-lg">
+            <div class="card border-0 bg-danger bg-opacity-10 h-100">
+                <div class="btn p-3 shadow-sm hover-shadow">
+                    @*to make it hover*@
+                    <div class="card-body text-center">
+                        <i class="bi bi-file-earmark-font fs-1 text-danger mb-2"></i>
+                        <h3 class="card-title fw-bold">@Model.textCount</h3>
+                        <p class="card-text">Text Files</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3 col-lg">
+            <div class="card border-0 bg-info bg-opacity-10 h-100">
+                <div class="btn p-3 shadow-sm hover-shadow">@*to make it hover*@
+                    <div class="card-body text-center">
+                        <i class="bi bi-file-earmark-image fs-1 text-info mb-2"></i>
+                        <h3 class="card-title fw-bold">@Model.imageCount</h3>
+                        <p class="card-text">Image Files</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
     <!-- Documents Table -->
     <div class="card shadow-sm mb-4">
         <div class="card-header bg-white py-3">
@@ -104,7 +156,9 @@
                 <div>
                     <h5 class="card-title">Need Help?</h5>
                     <p class="card-text mb-0">If you have any questions about MCD, please contact our support team in the email below.</p>
-                    <a href="mailto:mycleverdoc@hotmail.com" class="btn btn-sm btn-link ps-0">Contact Support</a>
+                    <a href="mailto:mycleverdoc@hotmail.com" class="btn btn-sm btn-link ps-0 text-decoration-none">
+                        <i class="bi bi-envelope me-1"></i>Contact Support
+                    </a>
                 </div>
             </div>
         </div>

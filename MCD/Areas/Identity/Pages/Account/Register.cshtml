@@ -1,116 +1,297 @@
 ﻿@page
 @model RegisterModel
 
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-lg rounded-3 overflow-hidden">
+                <div class="card-header bg-primary bg-gradient py-4 text-center">
+                    <h2 class="text-white fw-bold mb-0">Create Your Account</h2>
+                    <p class="text-white-50 mb-0 mt-2">Manage your documents today</p>
+                </div>
+                <div class="card-body p-4 p-md-5">
+                    <!-- Registration Progress -->
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="fw-bold text-primary" id="step1-indicator">Step 1: Personal Information</span>
+                            <span class="text-muted" id="step2-indicator">Step 2: Account Credentials</span>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-primary" role="progressbar" style="width: 50%;" id="registration-progress"></div>
+                        </div>
+                    </div>
 
+                    <form id="registerForm" class="row g-3" asp-route-returnUrl="@Model.ReturnUrl" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger rounded-3 p-3 bg-danger bg-opacity-10" role="alert"></div>
 
-<div class="card-header bg-dark bg-gradient ml-0 py-4">
-    <div class="row">
-        <div class="col-12 text-center">
-            <h2 class="py-2 text-bg-dark">Register</h2>
-        </div>
-    </div>
-    <div class="card-body p-4">
-        <div class="row pt-3">
-            <div class="col-md-12">
-                <form id="registerForm" class="row" asp-route-returnUrl="@Model.ReturnUrl" method="post">
-                    <h3 class="border-bottom pb-3 mb-4 text-bg-dark text-center">Create a new account.</h3>
-                    <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
-                    <div class="form-floating mb-3 col-md-12">
-                        <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com" id="emailInput" />
-                        <label asp-for="Input.Email" class="ms-2 text-dark">Email</label>
-                        <span asp-validation-for="Input.Email" class="text-danger"></span>
-                    </div>
-                    <div class="form-floating mb-3 col-md-6">
-                        <input asp-for="Input.Password" class="form-control" autocomplete="new-password" aria-required="true" placeholder="password" />
-                        <label asp-for="Input.Password" class="ms-2 text-dark">Password</label>
-                        <span asp-validation-for="Input.Password" class="text-danger"></span>
-                    </div>
-                    <div class="form-floating mb-3 col-md-6">
-                        <input asp-for="Input.ConfirmPassword" class="form-control" autocomplete="new-password" aria-required="true" placeholder="password" />
-                        <label asp-for="Input.ConfirmPassword" class="ms-2 text-dark">Confirm Password</label>
-                        <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
-                    </div>
-                    <div class="form-floating mb-3 col-md-6">
-                        <input asp-for="Input.FirstName" class="form-control" aria-required="true" placeholder="Enter your first name" required />
-                        <label asp-for="Input.FirstName" class="ms-2 text-dark">First Name</label>
-                        <span asp-validation-for="Input.FirstName" class="text-danger"></span>
-                    </div>
-                    <div class="form-floating mb-3 col-md-6">
-                        <input asp-for="Input.LastName" class="form-control" aria-required="true" placeholder="Enter your last name" required />
-                        <label asp-for="Input.LastName" class="ms-2 text-dark">Last Name</label>
-                        <span asp-validation-for="Input.LastName" class="text-danger"></span>
-                    </div>
-                    <div class="form-floating mb-3 col-md-12">
-                        <input asp-for="Input.PhoneNumber" class="form-control" aria-required="true" placeholder="Enter your phone number"
-                               id="phoneNumberInput"
-                               required/>
-                        <label asp-for="Input.PhoneNumber" class="ms-2 text-dark">Phone Number</label>
-                        <span asp-validation-for="Input.PhoneNumber" class="text-danger"></span>
-                    </div>
-                    <div class="col-12">
-                        <button id="registerSubmit" type="submit" class="w-100 btn btn-lg btn-primary">Register</button>
-                    </div>
-                </form>
-            </div>
-            <div class="col-md-12 p-3 text-center">
-                <section>
-                    <h3 class="text-center text-bg-dark mb-2">Use another service to register.</h3>
-                    <hr />
-                    @{
-                        if ((Model.ExternalLogins?.Count ?? 0) == 0)
-                        {
-                            <div>
-                                <p>
-                                    There are no external authentication services configured. See this <a href="https://go.microsoft.com/fwlink/?LinkID=532715">
-                                        article
-                                        about setting up this ASP.NET application to support logging in via external services
-                                    </a>.
-                                </p>
+                        <!-- Step 1: Personal Information -->
+                        <div id="step1" class="registration-step">
+                            <div class="col-12 mb-2">
+                                <h5 class="border-start border-primary border-4 ps-3 text-primary">Personal Information</h5>
                             </div>
-                        }
-                        else
-                        {
-                            <form id="external-account" asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" method="post" class="form-horizontal">
-                                <div>
-                                    <p>
-                                        @foreach (var provider in Model.ExternalLogins!)
-                                        {
-                                            <button type="submit" class="btn btn-primary" name="provider" value="@provider.Name" title="Log in using your @provider.DisplayName account">@provider.DisplayName</button>
-                                        }
-                                    </p>
+
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <input asp-for="Input.FirstName" class="form-control shadow-sm" aria-required="true" placeholder="Enter your first name" required id="firstNameInput" />
+                                    <label asp-for="Input.FirstName" class="text-secondary">First Name</label>
+                                    <span id="firstNameError" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <input asp-for="Input.LastName" class="form-control shadow-sm" aria-required="true" placeholder="Enter your last name" required id="lastNameInput" />
+                                    <label asp-for="Input.LastName" class="text-secondary">Last Name</label>
+                                    <span id="lastNameError" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <div class="col-12">
+                                <div class="form-floating mb-3">
+                                    <input asp-for="Input.PhoneNumber" class="form-control shadow-sm" aria-required="true" placeholder="Enter your phone number"
+                                           id="phoneNumberInput" required />
+                                    <label asp-for="Input.PhoneNumber" class="text-secondary">Phone Number</label>
+                                    <div class="form-text text-muted small">Format: 05XXXXXXXX</div>
+                                    <span id="phoneNumberError" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <div class="col-12 mt-4 text-end">
+                                <button type="button" id="nextStep" class="btn btn-primary px-4 shadow-sm hover-shadow">
+                                    Next Step <i class="bi bi-arrow-right ms-2"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Step 2: Account Credentials -->
+                        <div id="step2" class="registration-step" style="display: none;">
+                            <div class="col-12 mb-2">
+                                <h5 class="border-start border-primary border-4 ps-3 text-primary">Account Credentials</h5>
+                            </div>
+
+                            <div class="col-12">
+                                <div class="form-floating mb-3">
+                                    <input asp-for="Input.Email" class="form-control shadow-sm" autocomplete="username" aria-required="true" placeholder="name@example.com" id="emailInput" />
+                                    <label asp-for="Input.Email" class="text-secondary">Email Address</label>
+                                    <span asp-validation-for="Input.Email" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3 position-relative">
+                                    <input asp-for="Input.Password" class="form-control shadow-sm" autocomplete="new-password" aria-required="true" placeholder="password" id="passwordInput" />
+                                    <label asp-for="Input.Password" class="text-secondary">Password</label>
+                                    <button type="button" class="btn btn-sm position-absolute end-0 top-50 translate-middle-y me-2 text-primary bg-transparent border-0 password-toggle" data-target="passwordInput">
+                                        <i class="bi bi-eye-slash"></i>
+                                    </button>
+                                    <span asp-validation-for="Input.Password" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3 position-relative">
+                                    <input asp-for="Input.ConfirmPassword" class="form-control shadow-sm" autocomplete="new-password" aria-required="true" placeholder="password" id="confirmPasswordInput" />
+                                    <label asp-for="Input.ConfirmPassword" class="text-secondary">Confirm Password</label>
+                                    <button type="button" class="btn btn-sm position-absolute end-0 top-50 translate-middle-y me-2 text-primary bg-transparent border-0 password-toggle" data-target="confirmPasswordInput">
+                                        <i class="bi bi-eye-slash"></i>
+                                    </button>
+                                    <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <div class="col-12 mt-4 d-flex justify-content-between">
+                                <button type="button" id="prevStep" class="btn btn-outline-secondary px-4 shadow-sm hover-shadow">
+                                    <i class="bi bi-arrow-left me-2"></i>Previous Step
+                                </button>
+                                <button id="registerSubmit" type="submit" class="btn btn-primary btn-lg px-4 shadow-sm hover-shadow">
+                                    <i class="bi bi-person-plus-fill me-2"></i>Create Account
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="col-12 text-center mt-3">
+                            <p class="text-muted mb-0">
+                                Already have an account? <a asp-page="./Login" asp-route-returnUrl="@Model.ReturnUrl" class="text-decoration-none">Sign in</a>
+                            </p>
+                        </div>
+                    </form>
+                </div>
+
+                @if ((Model.ExternalLogins?.Count ?? 0) > 0)
+                {
+                    <div class="card-footer bg-light py-4">
+                        <div class="text-center">
+                            <h5 class="mb-3 text-secondary">Or sign up with</h5>
+                            <form id="external-account" asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" method="post">
+                                <div class="d-flex justify-content-center gap-2">
+                                    @foreach (var provider in Model.ExternalLogins!)
+                                    {
+                                        <button type="submit" class="btn btn-outline-secondary px-4 shadow-sm hover-shadow" name="provider" value="@provider.Name" title="Sign up using your @provider.DisplayName account">
+                                            @if (provider.DisplayName.Contains("Google"))
+                                            {
+                                                <i class="bi bi-google me-2"></i>
+                                            }
+                                            else if (provider.DisplayName.Contains("Facebook"))
+                                            {
+                                                <i class="bi bi-facebook me-2"></i>
+                                            }
+                                            else if (provider.DisplayName.Contains("Microsoft"))
+                                            {
+                                                <i class="bi bi-microsoft me-2"></i>
+                                            }
+                                            else if (provider.DisplayName.Contains("Twitter"))
+                                            {
+                                                <i class="bi bi-twitter me-2"></i>
+                                            }
+                                            @provider.DisplayName
+                                        </button>
+                                    }
                                 </div>
                             </form>
-                        }
-                    }
-                </section>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="card-footer bg-light py-3 text-center">
+                        <p class="text-muted small mb-0">
+                            <i class="bi bi-info-circle me-1"></i>
+                            External authentication services are not configured.
+                        </p>
+                    </div>
+                }
             </div>
-        </div>
 
+        </div>
     </div>
 </div>
-
-
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
 
     <script>
-            $(document).ready(function () {
-                $("#registerForm").submit(function (event) { //when submitting the form
-                    var phoneNumber = $("#phoneNumberInput").val();
-                    var phonePattern = /^05\d{8}$/; // Regex for 10-digit phone numbers starting with "05"
-                    var email = $("#emailInput").val();
-                    var emailPattern = /^[^@@\s]+@@[^@@\s]+\.[^@@\s]+$/;
-                    if (!phonePattern.test(phoneNumber)) {
-                        event.preventDefault(); // Stop form submission
-                        toastr.error("Invalid phone number format! Please enter 05XXXXXXXX");
-                    }
-                    if (!emailPattern.test(email)) {
-                        event.preventDefault(); // Stop form submission
-                        toastr.error("Invalid email format! Please enter a valid email address.");
-                    }
-                    
-                });
+        $(document).ready(function () {
+            // 1. Show/Hide Password Toggle
+            $(".password-toggle").click(function() {
+                const targetId = $(this).data("target");
+                const passwordInput = $("#" + targetId);
+                const icon = $(this).find("i");
+
+                if (passwordInput.attr("type") === "password") {
+                    passwordInput.attr("type", "text");
+                    icon.removeClass("bi-eye-slash").addClass("bi-eye");
+                } else {
+                    passwordInput.attr("type", "password");
+                    icon.removeClass("bi-eye").addClass("bi-eye-slash");
+                }
             });
-    </script>    
+
+            // 2. Two-step Registration
+            $("#nextStep").click(function() {
+                // Validate first step fields
+                let isValid = true;
+
+                // Check first name
+                if ($("#firstNameInput").val().trim() === "") {
+                    $("#firstNameError").text("First name is required");
+                    isValid = false;
+                }
+
+                // Check last name
+                if ($("#lastNameInput").val().trim() === "") {
+                    $("#lastNameError").text("Last name is required");
+                    isValid = false;
+                }
+
+                // Check phone number
+                const phoneNumber = $("#phoneNumberInput").val();
+                const phonePattern = /^05\d{8}$/;
+                if (!phonePattern.test(phoneNumber)) {
+                    $("#phoneNumberError").text("Please enter a valid phone number (05XXXXXXXX)");
+                    isValid = false;
+                }
+
+                if (isValid) {
+                    // Move to step 2
+                    $("#step1").hide();
+                    $("#step2").fadeIn(300); // Using jQuery's fadeIn instead of CSS animation
+                    $("#registration-progress").css("width", "100%");
+                    $("#step1-indicator").removeClass("fw-bold text-primary").addClass("text-muted");
+                    $("#step2-indicator").removeClass("text-muted").addClass("fw-bold text-primary");
+                }
+            });
+
+            $("#prevStep").click(function() {
+                // Go back to step 1
+                $("#step2").hide();
+                $("#step1").fadeIn(300); // Using jQuery's fadeIn instead of CSS animation
+                $("#registration-progress").css("width", "50%");
+                $("#step2-indicator").removeClass("fw-bold text-primary").addClass("text-muted");
+                $("#step1-indicator").removeClass("text-muted").addClass("fw-bold text-primary");
+            });
+
+            // 3. Real-time Validation for First Name, Last Name, and Phone Number
+            // First Name validation
+            $("#firstNameInput").on("input blur", function() {
+                if ($(this).val().trim() === "") {
+                    $("#firstNameError").text("First name is required");
+                } else {
+                    $("#firstNameError").text("");
+                }
+            });
+
+            // Last Name validation
+            $("#lastNameInput").on("input blur", function() {
+                if ($(this).val().trim() === "") {
+                    $("#lastNameError").text("Last name is required");
+                } else {
+                    $("#lastNameError").text("");
+                }
+            });
+
+            // Phone Number validation
+            $("#phoneNumberInput").on("input blur", function() {
+                const phoneNumber = $(this).val();
+                const phonePattern = /^05\d{8}$/;
+
+                if (!phonePattern.test(phoneNumber)) {
+                    $("#phoneNumberError").text("Please enter a valid phone number (05XXXXXXXX)");
+                } else {
+                    $("#phoneNumberError").text("");
+                }
+            });
+
+            // Form submission validation
+            $("#registerForm").submit(function (event) {
+                var phoneNumber = $("#phoneNumberInput").val();
+                var phonePattern = /^05\d{8}$/;
+                var email = $("#emailInput").val();
+                var emailPattern = /^[^@@\s]+@@[^@@\s]+\.[^@@\s]+$/;
+                var isValid = true;
+
+                if (!phonePattern.test(phoneNumber)) {
+                    event.preventDefault();
+                    toastr.error("Invalid phone number format! Please enter 05XXXXXXXX");
+                    isValid = false;
+                }
+
+                if (!emailPattern.test(email)) {
+                    event.preventDefault();
+                    toastr.error("Invalid email format! Please enter a valid email address.");
+                    isValid = false;
+                }
+
+                return isValid;
+            });
+        });
+    </script>
+
+    <style>
+        /* Custom styles */
+        .hover-shadow:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 .5rem 1rem rgba(0,0,0,.15) !important;
+            transition: all .3s;
+        }
+    </style>
 }
