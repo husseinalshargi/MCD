@@ -243,20 +243,20 @@
                                 <div class="d-flex flex-fill">
                                     <button onclick="openDocument('@Model.Document.ApplicationUserId', '@Model.Document.Id', '@($"{System.IO.Path.GetFileNameWithoutExtension(Model.Document.FileName)}_entities.txt")')"
                                             class="btn btn-light mb-2 w-100">
-                                        Show extracted entities
+                                        Show entities
                                     </button>
                                 </div>
                                 <form method="post" asp-action="DownloadFile" enctype="multipart/form-data" class="d-flex flex-fill">
                                     <input type="hidden" name="DocumentID" value="@Model.Document.Id" />
                                     <input type="hidden" name="downloadExtracted" value="true" />
                                     <div class="col text-center button-container">
-                                        <button type="submit" class="btn btn-dark w-100"><i class="bi bi-download"></i> Download extracted entities </button>
+                                        <button type="submit" class="btn btn-dark w-100"><i class="bi bi-download"></i> Downloa entities </button>
                                     </div>
                                 </form>
                                 <form asp-action="DeleteDocument" enctype="multipart/form-data" class="d-flex flex-fill">
                                     <input type="hidden" name="DocumentID" value="@Model.Document.Id" />
                                     <input type="hidden" name="deleteExtracted" value="true" />
-                                    <button type="submit" class="btn btn-danger mb-2 w-100"><i class="bi bi-trash-fill"></i> Delete extracted entities </button>
+                                    <button type="submit" class="btn btn-danger mb-2 w-100"><i class="bi bi-trash-fill"></i> Delete entities </button>
                                 </form>
                             </div>
                         }
