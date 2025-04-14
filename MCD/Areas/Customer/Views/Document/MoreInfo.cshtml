@@ -143,7 +143,10 @@
                             <form method="post" asp-action="ConvertToText" enctype="multipart/form-data">
                                 <input type="hidden" name="DocumentID" value="@Model.Document.Id" />
                                 <div class="col text-center button-container">
-                                    <button type="submit" class="btn btn-secondary">Convert</button>
+                                    <button type="submit" class="btn btn-secondary">
+                                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                        <span class="button-text">Convert</span>
+                                    </button>
                                 </div>
                             </form>
                         }
@@ -188,7 +191,10 @@
                             <form method="post" asp-action="SummarizeDocument" enctype="multipart/form-data">
                                 <input type="hidden" name="DocumentID" value="@Model.Document.Id" />
                                 <div class="col text-center button-container">
-                                    <button type="submit" class="btn btn-secondary">Summarize</button>
+                                    <button type="submit" class="btn btn-secondary">
+                                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                        <span class="button-text">Summarize</span>
+                                    </button>
                                 </div>
                             </form>
                         }
@@ -232,7 +238,10 @@
                             <form method="post" asp-action="GetEntities" enctype="multipart/form-data">
                                 <input type="hidden" name="DocumentID" value="@Model.Document.Id" />
                                 <div class="col text-center button-container">
-                                    <button type="submit" class="btn btn-light">Get Entities</button>
+                                    <button type="submit" class="btn btn-light">
+                                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                        <span class="button-text">Get Entities</span>
+                                    </button>
                                 </div>
                             </form>
                         }
@@ -307,6 +316,122 @@
                 }
             });
         }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            // First, add spinner elements to Summarize and Convert buttons if they don't have them
+            const summarizeButton = document.querySelector('form[asp-action="SummarizeDocument"] button[type="submit"]')
+            const convertButton = document.querySelector('form[asp-action="ConvertToText"] button[type="submit"]')
+
+            // Add spinner to Summarize button
+            if (summarizeButton && !summarizeButton.querySelector(".spinner-border")) {
+                const spinner = document.createElement("span")
+                spinner.className = "spinner-border spinner-border-sm"
+                spinner.setAttribute("role", "status")
+                spinner.setAttribute("aria-hidden", "true")
+                spinner.style.marginRight = "5px"
+                spinner.style.display = "none"
+                summarizeButton.prepend(spinner)
+            }
+
+            // Add spinner to Convert button
+            if (convertButton && !convertButton.querySelector(".spinner-border")) {
+                const spinner = document.createElement("span")
+                spinner.className = "spinner-border spinner-border-sm"
+                spinner.setAttribute("role", "status")
+                spinner.setAttribute("aria-hidden", "true")
+                spinner.style.marginRight = "5px"
+                spinner.style.display = "none"
+                convertButton.prepend(spinner)
+            }
+
+            // Hide all spinner icons initially
+            const spinners = document.querySelectorAll(".spinner-border")
+            spinners.forEach((spinner) => {
+                spinner.style.display = "none"
+            })
+
+            // Add event listeners to all forms to show spinners when submitted
+            const forms = document.querySelectorAll("form")
+            forms.forEach((form) => {
+                form.addEventListener("submit", function () {
+                const button = this.querySelector('button[type="submit"]')
+                if (button) {
+                    const spinner = button.querySelector(".spinner-border")
+                    if (spinner) {
+                    spinner.style.display = "inline-block"
+                    button.disabled = true
+                    }
+                }
+                })
+            })
+
+            // Specific handling for the Get Entities button
+            const entitiesForm = document.querySelector('form[asp-action="GetEntities"]')
+            if (entitiesForm) {
+                const entitiesButton = entitiesForm.querySelector('button[type="submit"]')
+                const entitiesSpinner = entitiesButton.querySelector(".spinner-border")
+
+                // Make sure it's hidden initially
+                if (entitiesSpinner) {
+                entitiesSpinner.style.display = "none"
+                }
+
+                // Show spinner when form is submitted
+                entitiesForm.addEventListener("submit", () => {
+                if (entitiesSpinner) {
+                    entitiesSpinner.style.display = "inline-block"
+                }
+                if (entitiesButton) {
+                    entitiesButton.disabled = true
+                }
+                })
+            }
+
+            // Specific handling for the Summarize button
+            const summarizeForm = document.querySelector('form[asp-action="SummarizeDocument"]')
+            if (summarizeForm) {
+                const summarizeButton = summarizeForm.querySelector('button[type="submit"]')
+                const summarizeSpinner = summarizeButton.querySelector(".spinner-border")
+
+                // Make sure it's hidden initially
+                if (summarizeSpinner) {
+                summarizeSpinner.style.display = "none"
+                }
+
+                // Show spinner when form is submitted
+                summarizeForm.addEventListener("submit", () => {
+                if (summarizeSpinner) {
+                    summarizeSpinner.style.display = "inline-block"
+                }
+                if (summarizeButton) {
+                    summarizeButton.disabled = true
+                }
+                })
+            }
+
+            // Specific handling for the Convert button
+            const convertForm = document.querySelector('form[asp-action="ConvertToText"]')
+            if (convertForm) {
+                const convertButton = convertForm.querySelector('button[type="submit"]')
+                const convertSpinner = convertButton.querySelector(".spinner-border")
+
+                // Make sure it's hidden initially
+                if (convertSpinner) {
+                convertSpinner.style.display = "none"
+                }
+
+                // Show spinner when form is submitted
+                convertForm.addEventListener("submit", () => {
+                if (convertSpinner) {
+                    convertSpinner.style.display = "inline-block"
+                }
+                if (convertButton) {
+                    convertButton.disabled = true
+                }
+                })
+            }
+            });
     </script>
+    
 }
 
