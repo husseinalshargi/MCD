@@ -19,7 +19,7 @@ namespace MCD.Utility
         public async Task<string> SendDataAsync(string endpoint, int fileId, string fileName, string userId) //handles the sending of data to the AI service custom api
         {
             var DriveService = await _GoogleDriveService.GetDriveService(); //get the google drive service instance
-            // Get the google file ID from the method created in the GoogleDriveService
+                                                                            // Get the google file ID from the method created in the GoogleDriveService
             string googleFileId = await GoogleDriveService.GetGoogleDriveFileId(DriveService, fileId, fileName, userId);
 
             // to download the file using its google id
@@ -30,26 +30,30 @@ namespace MCD.Utility
 
             using (var content = new MultipartFormDataContent()) //creates a multipart form request
             {
+                var fileContent = new StreamContent(stream); //converts from file stream into HTTP content
+                fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream"); //set the content type of the file
+
+                //attach the file to the request
+                content.Add(fileContent, "given_file", fileName);
+
+                //send the HTTP request to the Python API
+                HttpResponseMessage response = await _httpClient.PostAsync(_baseUrl + endpoint, content);
+
+                //return API response if it is successful
+                if (response.IsSuccessStatusCode)
                 {
-                    var fileContent = new StreamContent(stream); //converts from file stream into HTTP content
-                    fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream"); //set the content type of the file
+                    string rawResponse = await response.Content.ReadAsStringAsync();
 
-                    //attach the file to the request
-                    content.Add(fileContent, "given_file", fileName);
+                    // Convert escaped \n into real newlines
+                    string formattedResponse = rawResponse.Replace("\\n", "\n");
 
-                    //send the HTTP request to the Python API
-                    HttpResponseMessage response = await _httpClient.PostAsync(_baseUrl + endpoint, content);
-
-                    //return API response if it is successful
-                    if (response.IsSuccessStatusCode)
-                    {
-                        return await response.Content.ReadAsStringAsync(); //return the response from the API
-                    }
-                    return null;
+                    return formattedResponse;
                 }
-            }
 
+                return null;
+            }
         }
+
 
     }
 }

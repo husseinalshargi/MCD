@@ -273,7 +273,7 @@ namespace MCD.Areas.Customer.Controllers
 
             //get the file id in google drive to delete from there
             var driveService = await _GoogleDriveService.GetDriveService(); //get the google drive service instance to interact with the drive
-            string fileNameToDelete = deleteConverted ? Path.GetFileNameWithoutExtension(document.FileName) + "_converted.txt" : deleteSummarized ? Path.GetFileNameWithoutExtension(document.FileName) + "_summarized.txt" : deleteExtracted ? Path.GetFileNameWithoutExtension(document.FileName) + "_converted.json" : document.FileName; //to change the file name to delete that specific file
+            string fileNameToDelete = deleteConverted ? Path.GetFileNameWithoutExtension(document.FileName) + "_converted.txt" : deleteSummarized ? Path.GetFileNameWithoutExtension(document.FileName) + "_summarized.txt" : deleteExtracted ? Path.GetFileNameWithoutExtension(document.FileName) + "_entities.txt" : document.FileName; //to change the file name to delete that specific file
             var googleDriveFilId = await GoogleDriveService.GetGoogleDriveFileId(driveService, DocumentId, fileNameToDelete, userId);
             var isDeleted = await GoogleDriveService.DeleteFileAsync(driveService, googleDriveFilId); //delete the file from the google drive and return true if deleted successfully
 
@@ -319,7 +319,7 @@ namespace MCD.Areas.Customer.Controllers
             }
             else if (deleteExtracted)
             {
-                var ExtractedEntitiesList = _UnitOfWork.Document.Get(u => u.Id == DocumentId).ExtractedEntities;
+                var ExtractedEntitiesList = _UnitOfWork.Entity.Get(u => u.DocumentId == DocumentId);
                 if (ExtractedEntitiesList == null)
                 {
                     TempData["error"] = "Extracted entities not found.";
@@ -381,7 +381,7 @@ namespace MCD.Areas.Customer.Controllers
                     }
                     if (extractedEntities != null) //if the document has extracted entities version
                     {
-                        string extractedEntitiesNameToDelete = Path.GetFileNameWithoutExtension(document.FileName) + "_summarized.txt"; //to change the file name to delete converted file
+                        string extractedEntitiesNameToDelete = Path.GetFileNameWithoutExtension(document.FileName) + "_entities.txt"; //to change the file name to delete converted file
                         var extractedEntitiesGoogleDriveFilId = await GoogleDriveService.GetGoogleDriveFileId(driveService, DocumentId, extractedEntitiesNameToDelete, userId);
                         var extractedEntitiesIsDeleted = await GoogleDriveService.DeleteFileAsync(driveService, extractedEntitiesGoogleDriveFilId); //delete the file from the google drive and return true if deleted successfully
 
@@ -821,33 +821,29 @@ namespace MCD.Areas.Customer.Controllers
 
             var extractedEntitiesList = new List<Entity>();
 
-            //clean the string
+            // Clean the string
             string cleanText = extractedEntitiesText
-                .Replace("```python", "")
+                .Replace("```json", "")
                 .Replace("```", "")
+                .Replace("json", "")
                 .Trim();
 
-            //match each key and list of values
-            var matches = Regex.Matches(cleanText, @"(\w+)\s*:\s*\[([^\]]*)\]");
+            // Normalize line endings and split into lines
+            var lines = cleanText.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
 
-            foreach (Match match in matches)
+            foreach (var line in lines)
             {
-                string entityType = match.Groups[1].Value.ToLower(); // e.g., "person", "location"
-                string entityValuesRaw = match.Groups[2].Value;      // e.g., "Google, GoogleDrive"
-
-                //split and clean the values
-                var entityValues = entityValuesRaw
-                    .Split(',', StringSplitOptions.RemoveEmptyEntries)
-                    .Select(v => v.Trim().Trim('"'))
-                    .Where(v => !string.IsNullOrWhiteSpace(v));
-
-                foreach (var value in entityValues)
+                var match = Regex.Match(line.Trim(), @"(\w+)\s*,\s*(\w+)");
+                if (match.Success)
                 {
+                    string entityType = match.Groups[1].Value.ToLower();  // e.g., "person"
+                    string entityValue = match.Groups[2].Value;            // e.g., "Perlia"
+
                     extractedEntitiesList.Add(new Entity
                     {
                         DocumentId = document.Id,
                         EntityType = entityType,
-                        EntityValue = value
+                        EntityValue = entityValue
                     });
                 }
             }
@@ -876,7 +872,7 @@ namespace MCD.Areas.Customer.Controllers
                 TempData["error"] = "Entities not found!";
             }
 
-                return RedirectToAction("MoreInfo", "Document", new { id = document.Id });
+            return RedirectToAction("MoreInfo", "Document", new { id = document.Id });
         }
 
 
