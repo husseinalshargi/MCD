@@ -48,7 +48,7 @@ function loadDataTable() {
             {
                 data: 'id',
                 "render": function (data) { //the data is the id
-                    return `<a href="/Customer/document/moreinfo/${data}" class="btn btn-info mx-2"> <i class="bi bi-info-circle"></i> Info </a>`
+                    return `<a href="/Customer/document/moreinfo/${data}" class="btn btn-info "> <i class="bi bi-info-circle"></i> Info </a>`
 
                     //here it will return a button for the entering the info page
                 },

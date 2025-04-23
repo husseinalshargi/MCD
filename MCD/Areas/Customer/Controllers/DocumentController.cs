@@ -28,7 +28,7 @@ namespace MCD.Areas.Customer.Controllers
             _GoogleDriveService = googleDriveService;
             _MCDAIFunctions = MCDAIFunctions;
         }
-        public IActionResult MoreInfo(int? id)
+        public async Task<IActionResult> MoreInfo(int? id)
         {
             if (!User.Identity.IsAuthenticated) // in order to avoid null errors in the next step we will check first if the user is authenticated 
             {
@@ -48,13 +48,19 @@ namespace MCD.Areas.Customer.Controllers
                 return RedirectToAction("Document", "Home");
             }
 
+
+            var DriveService = await _GoogleDriveService.GetDriveService(); //get the google drive service instance to interact with the drive
+            var isExtracted = await GoogleDriveService.GetGoogleDriveFileId(DriveService, document.Id, $"{Path.GetFileNameWithoutExtension(document.FileName)}_entities.txt", userId); //check if the document is already extracted in google drive
+
+
+
             MoreInfoVM moreInfoVM = new MoreInfoVM()
             {
                 Document = document,
                 CategoryList = _UnitOfWork.Category.GetAll(u => u.ApplicationUserId == userId).ToList(),
                 isConverted = _UnitOfWork.ExtractedDocument.Get(u => u.DocumentId == document.Id) != null, //to check if the document is already converted to text
                 isSummarized = _UnitOfWork.SummarizedDocument.Get(u => u.DocumentId == document.Id) != null, //to check if the document is already Summarized 
-                isExtracted = _UnitOfWork.Entity.Get(u => u.DocumentId == document.Id) != null
+                isExtracted = isExtracted != null
             }; //to show the user all the categories that he has when he wants to update the document
 
             return View(moreInfoVM);
@@ -280,7 +286,7 @@ namespace MCD.Areas.Customer.Controllers
             if (deleteConverted) //delete the converted document
             {
                 var extractedDocument = _UnitOfWork.ExtractedDocument.Get(u => u.DocumentId == DocumentId);
-                if (extractedDocument == null)
+                if (extractedDocument == null && !isDeleted)
                 {
                     TempData["error"] = "converted document not found.";
                     return RedirectToAction("Document", "Home");
@@ -300,7 +306,7 @@ namespace MCD.Areas.Customer.Controllers
             else if (deleteSummarized) //delete the summarized document
             {
                 var SummarizedDocument = _UnitOfWork.SummarizedDocument.Get(u => u.DocumentId == DocumentId);
-                if (SummarizedDocument == null)
+                if (SummarizedDocument == null && !isDeleted)
                 {
                     TempData["error"] = "Summarized document not found.";
                     return RedirectToAction("Document", "Home");
@@ -320,7 +326,7 @@ namespace MCD.Areas.Customer.Controllers
             else if (deleteExtracted)
             {
                 var ExtractedEntitiesList = _UnitOfWork.Entity.Get(u => u.DocumentId == DocumentId);
-                if (ExtractedEntitiesList == null)
+                if (ExtractedEntitiesList == null && !isDeleted)
                 {
                     TempData["error"] = "Extracted entities not found.";
                     return RedirectToAction("Document", "Home");
@@ -385,7 +391,12 @@ namespace MCD.Areas.Customer.Controllers
                         var extractedEntitiesGoogleDriveFilId = await GoogleDriveService.GetGoogleDriveFileId(driveService, DocumentId, extractedEntitiesNameToDelete, userId);
                         var extractedEntitiesIsDeleted = await GoogleDriveService.DeleteFileAsync(driveService, extractedEntitiesGoogleDriveFilId); //delete the file from the google drive and return true if deleted successfully
 
-                        _UnitOfWork.SummarizedDocument.Remove(summarized); //remove the summarized version from the database
+                        document.ExtractedEntities = null; //remove the extracted entities from the document
+                        _UnitOfWork.Document.Update(document);  // update the document
+                        _UnitOfWork.Save();
+
+                        var entities = _UnitOfWork.Entity.GetAll(u => u.DocumentId == DocumentId); //get all the entities related to the document
+                        _UnitOfWork.Entity.RemoveRange(entities); //remove all the entities related to the document
                         _UnitOfWork.Save();
                     }
                     _UnitOfWork.Document.Remove(document);

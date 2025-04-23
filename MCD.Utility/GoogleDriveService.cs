@@ -119,6 +119,7 @@ namespace MCD.Utility
             folderRequest.Fields = "files(id, name)";
             var folderResponse = await folderRequest.ExecuteAsync();
             var mcdFolder = folderResponse.Files.FirstOrDefault();
+            if (mcdFolder == null) return null;
             string mcdFolderId = mcdFolder.Id; // get the MCD folder ID
 
             // get user's folder ID inside MCD
@@ -127,6 +128,7 @@ namespace MCD.Utility
             userFolderRequest.Fields = "files(id, name)";
             var userFolderResponse = await userFolderRequest.ExecuteAsync();
             var userFolder = userFolderResponse.Files.FirstOrDefault();
+            if (userFolder == null) return null;
             string userFolderId = userFolder.Id; // get the user folder ID
 
             // finally get the file ID
@@ -135,7 +137,11 @@ namespace MCD.Utility
             userFileToShareRequest.Fields = "files(id, name)";
             var userFileToShareResponse = await userFileToShareRequest.ExecuteAsync();
             var userFileToShare = userFileToShareResponse.Files.FirstOrDefault();
+            if (userFileToShare == null) return null;
+
             string userFileId = userFileToShare.Id; // get the user file ID
+
+
             return userFileId;
         }
         public static async Task<bool> DeleteFileAsync(DriveService service, string fileId) //to delete the file from google drive

@@ -13,7 +13,6 @@ namespace MCD.Utility
         public const string Role_Customer = "Customer";
         //an employee to control user accounts
         public const string Role_Employee = "Employee";
-        //an admin that can control all
-        public const string Role_Admin = "admin";
+
     }
 }

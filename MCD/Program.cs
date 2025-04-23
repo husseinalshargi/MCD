@@ -8,6 +8,7 @@ using MCD.DataAccess.Repository.IRepository;
 using MCD.DataAccess.Repository;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using MCD.DataAccess.DbInitializer;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -70,6 +71,9 @@ builder.Services.AddSingleton<GoogleDriveService>();
 //add the AI functions
 builder.Services.AddScoped<MCDAIFunctions>();
 
+
+builder.Services.AddScoped<IDbInitializer,DbInitializer>(); //to add the db initializer to the service collection
+
 builder.Services.AddRazorPages(); //so that it handles razor pages where there is only area-page
 //such as in authentication
 
@@ -98,6 +102,7 @@ app.UseRouting();
 app.UseAuthentication(); //if user username and pass is valid then go to use authorization
 app.UseAuthorization();
 app.UseSession(); //to use session in the application
+SeedDatabase(); //to seed the database with default data from the db initializer
 //here it will handle razor pages also
 app.MapRazorPages();
 // here are the default route if there is any error
@@ -106,3 +111,14 @@ app.MapControllerRoute(
     pattern: "{area=Customer}/{controller=Home}/{action=Index}/{id?}"); //default route
 
 app.Run();
+
+
+
+void SeedDatabase() //to seed the database with default data from the db initializer
+{
+    using (var scope = app.Services.CreateScope())
+    {
+        var dbInitializer = scope.ServiceProvider.GetRequiredService<IDbInitializer>(); //to get the db initializer
+        dbInitializer.Initialize(); //to initialize the database
+    }
+}

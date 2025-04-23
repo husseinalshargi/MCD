@@ -115,18 +115,6 @@ namespace MCD.Areas.Identity.Pages.Account
 
         public async Task OnGetAsync(string returnUrl = null)
         {
-            // in the register the webapp will check if the roles exists or not 
-            //so that it creates them in the database
-            //rather than async type we add getawait, getresult
-            // in order to do the task immediately
-            if (!_roleManager.RoleExistsAsync(SD.Role_Customer).GetAwaiter().GetResult()) //to check if the roles exists in the roles table in the db
-            {
-                //if not then create all roles
-                _roleManager.CreateAsync(new IdentityRole(SD.Role_Customer)).GetAwaiter().GetResult(); //of type identity role with the name taken from SD file, also create async make the execution faster
-                _roleManager.CreateAsync(new IdentityRole(SD.Role_Employee)).GetAwaiter().GetResult();
-                _roleManager.CreateAsync(new IdentityRole(SD.Role_Admin)).GetAwaiter().GetResult();
-            }
-
 
             ReturnUrl = returnUrl;
             ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
