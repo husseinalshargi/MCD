@@ -108,7 +108,7 @@ namespace MCD.Areas.Customer.Controllers
             {
                 ApplicationUserId = userId,
                 userEmailAddress = _UnitOfWork.ApplicationUser.Get(u => u.Id == userId).Email,
-                Action = $"Removed ${sharedDocument.SharedToEmail} Access",
+                Action = $"Removed {sharedDocument.SharedToEmail} Access",
                 FileName = FileName,
                 ActionDate = DateTime.Now
             });
@@ -326,7 +326,8 @@ namespace MCD.Areas.Customer.Controllers
             doc.UploadDate,
             doc.UpdateDate,
             doc.Category.CategoryName,
-            EntityText = string.Join(", ", doc.ExtractedEntities.Select(e => e.EntityValue))
+            EntityText = string.Join(", ", doc.ExtractedEntities.Select(e => e.EntityValue)),
+            doc.ApplicationUserId
         }).ToList();
 
             return Json(new { data = DocumentList });

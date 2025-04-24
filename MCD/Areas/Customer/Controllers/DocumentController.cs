@@ -336,6 +336,11 @@ namespace MCD.Areas.Customer.Controllers
                     document.ExtractedEntities = null;
                     _UnitOfWork.Document.Update(document);  // mark the document as updated
                     _UnitOfWork.Save();
+
+                    var entities = _UnitOfWork.Entity.GetAll(u => u.DocumentId == DocumentId); //get all the entities related to the document
+                    _UnitOfWork.Entity.RemoveRange(entities); //remove all the entities related to the document
+                    _UnitOfWork.Save();
+
                     TempData["success"] = "Extracted entities deleted successfully!";
                 }
                 else
@@ -705,7 +710,7 @@ namespace MCD.Areas.Customer.Controllers
             {
                 ApplicationUserId = userId,
                 userEmailAddress = _UnitOfWork.ApplicationUser.Get(u => u.Id == userId).Email,
-                Action = (downloadConverted ? "downloaded converted version of " : downloadSummarized ? "downloaded Summarized version of " : downloadExtracted ? "downloaded extracted entities of " : "downloaded ") + document.FileName,
+                Action = (downloadConverted ? "downloaded converted version" : downloadSummarized ? "downloaded Summarized version" : downloadExtracted ? "downloaded extracted entities" : "downloaded "),
                 FileName = document.FileName,
                 ActionDate = DateTime.Now
             });
@@ -844,11 +849,17 @@ namespace MCD.Areas.Customer.Controllers
 
             foreach (var line in lines)
             {
-                var match = Regex.Match(line.Trim(), @"(\w+)\s*,\s*(\w+)");
+                //trim the line to remove any leading/trailing whitespace
+                var trimmedLine = line.Trim();
+
+                //captures the entity type before the comma
+                //and the entire entity value after the comma
+                var match = Regex.Match(trimmedLine, @"^(\w+)\s*,\s*(.+)$");
+
                 if (match.Success)
                 {
-                    string entityType = match.Groups[1].Value.ToLower();  // e.g., "person"
-                    string entityValue = match.Groups[2].Value;            // e.g., "Perlia"
+                    string entityType = match.Groups[1].Value.ToLower();  // "organization"
+                    string entityValue = match.Groups[2].Value.Trim();    // "UFCW Local 1096"
 
                     extractedEntitiesList.Add(new Entity
                     {
@@ -868,7 +879,7 @@ namespace MCD.Areas.Customer.Controllers
             {
                 ApplicationUserId = userId,
                 userEmailAddress = _UnitOfWork.ApplicationUser.Get(u => u.Id == userId).Email,
-                Action = $"extracted entities of the file",
+                Action = $"extracted entities",
                 FileName = document.FileName,
                 ActionDate = DateTime.Now
             });

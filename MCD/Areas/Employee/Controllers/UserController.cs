@@ -71,8 +71,13 @@ namespace MCD.Areas.Employee.Controllers
         [HttpGet]
         public IActionResult GetAll()
         {
+            //to get the current user id
+            var claimsIdentity = (ClaimsIdentity)User.Identity;
+            var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
+
+
             //list of all users
-            List<ApplicationUser> applicationUsers = _unitOfWork.ApplicationUser.GetAll().ToList();
+            List<ApplicationUser> applicationUsers = _unitOfWork.ApplicationUser.GetAll(u=> u.Id != userId).ToList();
 
             //all table names are in SSMS (database)
             //in order to get the user role id (the table are created by default in the identity db not UOW)

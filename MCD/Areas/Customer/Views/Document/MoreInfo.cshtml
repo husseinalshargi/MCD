@@ -317,7 +317,7 @@
             });
         }
 
-                document.addEventListener("DOMContentLoaded", () => {
+            document.addEventListener("DOMContentLoaded", () => {
             // Add spinner elements to Summarize and Convert buttons if they don't have them
             const summarizeButton = document.querySelector('form[asp-action="SummarizeDocument"] button[type="submit"]');
             const convertButton = document.querySelector('form[asp-action="ConvertToText"] button[type="submit"]');
@@ -346,11 +346,28 @@
             //define all submit buttons here so it's available when submitting
             const allSubmitButtons = document.querySelectorAll('form button[type="submit"]');
 
+            //function to re-enable all buttons
+            function reEnableAllButtons() {
+                allSubmitButtons.forEach((btn) => {
+                    btn.disabled = false;
+                });
+
+                //also hide all spinners
+                const spinners = document.querySelectorAll(".spinner-border");
+                spinners.forEach((spinner) => {
+                    spinner.style.display = "none";
+                });
+            }
+
             //add event listeners to all forms
             const forms = document.querySelectorAll("form");
             forms.forEach((form) => {
                 form.addEventListener("submit", function () {
-                    //disable all submit buttons
+                    //check if this is a download form
+                    const isDownloadForm = form.getAttribute("asp-action") === "DownloadFile" ||
+                                          form.action.includes("DownloadFile");
+
+                    //disable all buttons initially
                     allSubmitButtons.forEach((btn) => {
                         btn.disabled = true;
                     });
@@ -362,6 +379,12 @@
                         if (spinner) {
                             spinner.style.display = "inline-block";
                         }
+                    }
+
+                    //if this is a download form, re-enable all buttons after a short delay
+                    if (isDownloadForm) {
+                        //wait 4 seconds before re-enabling buttons
+                        setTimeout(reEnableAllButtons, 4000);
                     }
                 });
             });
