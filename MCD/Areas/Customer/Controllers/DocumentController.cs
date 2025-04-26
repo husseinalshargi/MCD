@@ -475,7 +475,7 @@ namespace MCD.Areas.Customer.Controllers
             }
             if (summarizedText.IsNullOrEmpty())
             {
-                TempData["error"] = "Error summarizing the document.";
+                TempData["error"] = "Error summarizing the document. It could be that the API isn't working";
                 return RedirectToAction("MoreInfo", "Document", new { id = document.Id });
             }
 
@@ -594,9 +594,9 @@ namespace MCD.Areas.Customer.Controllers
                 return RedirectToAction("MoreInfo", "Document", new { id = document.Id });
             }
             string extractedText = await _MCDAIFunctions.SendDataAsync("/ocr", document.Id, document.FileName, userId); //send the file to the ai service to convert it to text
-            if (extractedText == null)
+            if (extractedText.IsNullOrEmpty())
             {
-                TempData["error"] = "Error converting the document to text.";
+                TempData["error"] = "Error converting the document to text. It could be that the API isn't working";
                 return RedirectToAction("MoreInfo", "Document", new { id = document.Id });
             }
 
@@ -778,7 +778,7 @@ namespace MCD.Areas.Customer.Controllers
             }
             if (extractedEntitiesText.IsNullOrEmpty())
             {
-                TempData["error"] = "Error summarizing the document.";
+                TempData["error"] = "Error summarizing the document. It could be that the API isn't working";
                 return RedirectToAction("MoreInfo", "Document", new { id = document.Id });
             }
 
