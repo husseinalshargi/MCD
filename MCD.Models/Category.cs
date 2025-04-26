@@ -22,6 +22,7 @@ namespace MCD.Models
 
         [Required]
         [StringLength(30, MinimumLength = 1)]
+        [MaxLength(30)]
         public required string CategoryName { get; set; }
 
     }

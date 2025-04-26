@@ -30,10 +30,12 @@ namespace MCD.Models
 
          //to be requierd in the data validation when entering the data
         [StringLength(50, MinimumLength = 1)] // the length of the string should be in between 1-50
+        [MaxLength(50)]
         public string Title { get; set; }
 
          //to be requierd in the data validation when entering the data
         [StringLength(100, MinimumLength = 1)]
+        [MaxLength(100)]
         public string FileName { get; set; } 
 
         
