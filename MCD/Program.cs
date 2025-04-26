@@ -14,7 +14,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // to Add services to the container. -> add in thus file
 builder.Services.AddControllersWithViews()
-    .AddJsonOptions(options => //to make json query accepts 64 depth
+    .AddJsonOptions(options => //to make json query accepts 128 depth
     {
         options.JsonSerializerOptions.MaxDepth = 128;
     });

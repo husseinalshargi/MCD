@@ -33,8 +33,8 @@ namespace MCD.Models
         public string Title { get; set; }
 
          //to be requierd in the data validation when entering the data
-        [StringLength(50, MinimumLength = 1)]
-        public string FileName { get; set; } // to use in path (which will be in wwwroot)\ FileName.FileType
+        [StringLength(100, MinimumLength = 1)]
+        public string FileName { get; set; } 
 
         
         public string FileType { get; set; } // PDF, JPG, txt, etc...
