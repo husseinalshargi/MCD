@@ -160,6 +160,7 @@ namespace MCD.Areas.Customer.Controllers
         public async Task<IActionResult> UploadDocument(DocumentVM model) //put here the input, it will be async in order to improve performance/ handling a lot of large documents and we don't want thread blocking   
         {
             int singleDocumentId = 0; //if it was only one document then we will need the id to show more info page
+            int skippedDocumentCount = 0; //to count the number of skipped documents
             if (model.DocumentFiles != null) // if there is a valid file
             {
                 //to assign the user id 
@@ -173,7 +174,7 @@ namespace MCD.Areas.Customer.Controllers
                         //check how many characters the file name has
                         if (documentFile.FileName.Length > 100) //if the file name is too long
                         {
-                            TempData["error"] = $"{documentFile.FileName} \nFile name is too long. Please rename the file and try again.";
+                            skippedDocumentCount+=1; // to count the number of skipped documents
                             continue; // to skip the file and continue to the next one
                         }
                         // in order to write it in the description
@@ -294,11 +295,27 @@ namespace MCD.Areas.Customer.Controllers
                 }
                 if (model.DocumentFiles.Count() > 1) //if the user uploaded more than one file
                 {
-                    TempData["success"] = "Documents uploaded successfully."; //to show the success message to the user
-                    return RedirectToAction("Document");
+                    if (skippedDocumentCount > 0) //if there are skipped documents
+                    {
+                        TempData["error"] = $"{skippedDocumentCount} documents were skipped due to long file names. Please rename the files and try again.";
+                    }
+                    if (model.DocumentFiles.Count() - skippedDocumentCount == 0)
+                    { //if all the documents were skipped
+                        TempData["error"] = "All documents were skipped due to long file names. Please rename the files and try again.";
+                    }
+                    else
+                    {
+                        TempData["success"] = $"{model.DocumentFiles.Count() - skippedDocumentCount} documents uploaded successfully."; //to show the success message to the user
+                        return RedirectToAction("Document");
+                    }
                 }
                 else if (model.DocumentFiles.Count() == 1) //if the user uploaded only one file
                 {
+                    if (skippedDocumentCount == 1) //if there are skipped documents
+                    {
+                        TempData["error"] = "document was skipped due to long file name. Please rename the file and try again.";
+                        return RedirectToAction("Document");
+                    }
                     TempData["success"] = "Document uploaded successfully."; //to show the success message to the user
                     return RedirectToAction("MoreInfo", "Document", new { id = singleDocumentId });
                 }
