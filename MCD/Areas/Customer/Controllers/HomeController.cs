@@ -170,6 +170,12 @@ namespace MCD.Areas.Customer.Controllers
                 {
                     if (documentFile.Length > 0) //if the file is valid
                     {
+                        //check how many characters the file name has
+                        if (documentFile.FileName.Length > 100) //if the file name is too long
+                        {
+                            TempData["error"] = $"{documentFile.FileName} \nFile name is too long. Please rename the file and try again.";
+                            continue; // to skip the file and continue to the next one
+                        }
                         // in order to write it in the description
                         string userEmail = _UnitOfWork.ApplicationUser.Get(u => u.Id == userId).Email; // to get the user email
 
