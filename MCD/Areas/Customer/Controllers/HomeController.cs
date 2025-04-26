@@ -46,7 +46,7 @@ namespace MCD.Areas.Customer.Controllers
                     TotalDocuments = _UnitOfWork.Document.GetAll(u => u.ApplicationUserId == currentUser.Id).Count(),
                     TotalSharedDocuments = _UnitOfWork.SharedDocument.GetAll(u => u.SharedFromId == userId).Count(),
                     TotalSharedWithDocuments = _UnitOfWork.SharedDocument.GetAll(u => u.SharedToEmail.Trim().ToLower() == currentUser.Email.Trim().ToLower()).Count(),
-                    RecentSharedDocuments = _UnitOfWork.SharedDocument.GetAll(u => u.SharedToEmail.Trim().ToLower() == currentUser.Email.Trim().ToLower(), includeProperties : "Document").OrderByDescending(d => d.SharedAt).ToList(), //to show in the page recent shared documents
+                    RecentSharedDocuments = _UnitOfWork.SharedDocument.GetAll(u => u.SharedToEmail.Trim().ToLower() == currentUser.Email.Trim().ToLower(), includeProperties: "Document").OrderByDescending(d => d.SharedAt).ToList(), //to show in the page recent shared documents
                     auditLogs = _UnitOfWork.AuditLog.GetAll(u => u.ApplicationUserId == userId).OrderByDescending(d => d.ActionDate).ToList() //to show in the page recent logs in descending order
                 };
 
@@ -159,134 +159,143 @@ namespace MCD.Areas.Customer.Controllers
         [HttpPost]
         public async Task<IActionResult> UploadDocument(DocumentVM model) //put here the input, it will be async in order to improve performance/ handling a lot of large documents and we don't want thread blocking   
         {
-            if (model.DocumentFile != null) // if there is a valid file
+            int singleDocumentId = 0; //if it was only one document then we will need the id to show more info page
+            if (model.DocumentFiles != null) // if there is a valid file
             {
                 //to assign the user id 
                 var claimsIdentity = (ClaimsIdentity)User.Identity;
                 var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
 
-
-                //to get the file in IFormFile obj
-                if (model.DocumentFile == null)
+                foreach (var documentFile in model.DocumentFiles) //to loop for each file in the list of files
                 {
-                    return BadRequest("No file selected."); //as the user did not upload a file
-                }
-                // in order to write it in the description
-                string userEmail = _UnitOfWork.ApplicationUser.Get(u => u.Id == userId).Email; // to get the user email
-
-
-                //use the google drive class from the utilities
-                var DriveService = await _GoogleDriveService.GetDriveService(); // await because it is defined like this 
-
-                //get mcd folder in order to save it
-                var folderRequest = DriveService.Files.List();
-                folderRequest.Q = "name = 'MCD' and mimeType = 'application/vnd.google-apps.folder' and trashed = false";
-                folderRequest.Fields = "files(id, name)";
-                var folderResponse = await folderRequest.ExecuteAsync();
-                var mcdFolder = folderResponse.Files.FirstOrDefault();
-
-                if (mcdFolder == null)
-                {
-                    return NotFound("MCD folder not found.");
-                }
-                string mcdFolderId = mcdFolder.Id;
-
-
-
-                // get  User's Folder ID inside MCD
-                var userFolderRequest = DriveService.Files.List();
-                userFolderRequest.Q = $"name = '{userId}' and mimeType = 'application/vnd.google-apps.folder' and '{mcdFolderId}' in parents and trashed = false";
-                userFolderRequest.Fields = "files(id, name)";
-                var userFolderResponse = await userFolderRequest.ExecuteAsync();
-                string userFolderId = null;
-
-                //here is the logic of searching for a folder, if it wasn't here create one
-                string parentFolderId = null; // to put in the parent name (folder)
-                if (userFolderResponse.Files.Count == 0) // if not found
-                {
-                    var folderMetaData = new Google.Apis.Drive.v3.Data.File()
+                    if (documentFile.Length > 0) //if the file is valid
                     {
-                        Name = userId, // Folder name
-                        Parents = new List<string> { mcdFolderId },
-                        MimeType = "application/vnd.google-apps.folder",
-                    };
-
-                    var createRequest = DriveService.Files.Create(folderMetaData);
-                    createRequest.Fields = "id";
-                    var folder = createRequest.Execute();
-                    userFolderId = folder.Id; // Use the created folder's ID as the parent
-                }
-                else
-                {
-                    userFolderId = userFolderResponse.Files[0].Id; // Use the existing folder's id as the parent
-                }
-
-                //create the document reference in the database before uploading the file in order to get the file id of the database to save in google drive
-
-                //so that we don't create a category when we have a document with a default type
-                Category DefaultCategory = _UnitOfWork.Category.Get(u => u.ApplicationUserId == userId && u.CategoryName == "---");
-                if (DefaultCategory == null)
-                {
-                    DefaultCategory = new Category() { ApplicationUserId = userId, CategoryName = "---" };
-                }
+                        // in order to write it in the description
+                        string userEmail = _UnitOfWork.ApplicationUser.Get(u => u.Id == userId).Email; // to get the user email
 
 
-                //to save the document details in the db
-                Document document = new()
-                {
-                    ApplicationUserId = userId,
-                    Category = DefaultCategory,
-                    Title = model.DocumentFile.FileName,
-                    FileName = model.DocumentFile.FileName,
-                    FileType = model.DocumentFile.ContentType,
-                    UploadDate = DateTime.Now,
-                    UpdateDate = DateTime.Now,
-                    AITaskStatus = "---"
-                };
+                        //use the google drive class from the utilities
+                        var DriveService = await _GoogleDriveService.GetDriveService(); // await because it is defined like this 
 
-                _UnitOfWork.Document.Add(document); //add it to the db
-                _UnitOfWork.Save();
+                        //get mcd folder in order to save it
+                        var folderRequest = DriveService.Files.List();
+                        folderRequest.Q = "name = 'MCD' and mimeType = 'application/vnd.google-apps.folder' and trashed = false";
+                        folderRequest.Fields = "files(id, name)";
+                        var folderResponse = await folderRequest.ExecuteAsync();
+                        var mcdFolder = folderResponse.Files.FirstOrDefault();
 
-                var newDocumentId = document.Id; //to get the id of the document that was just created to add it to the document name in google drive
+                        if (mcdFolder == null)
+                        {
+                            return NotFound("MCD folder not found.");
+                        }
+                        string mcdFolderId = mcdFolder.Id;
 
-                var FileMetaData = new Google.Apis.Drive.v3.Data.File()
-                {
-                    Name = newDocumentId + "-" + model.DocumentFile.FileName,
-                    Parents = new List<string> { userFolderId }, //the name of the folder in the drive
-                    Description = $"MCD Documents folder uploaded by: {userEmail}"
 
-                }; //here i will place the file details that will be uploaded in google drive
 
-                //uploading the file logic
-                using (var stream = model.DocumentFile.OpenReadStream())
-                {
-                    var request = DriveService.Files.Create(FileMetaData, stream, model.DocumentFile.ContentType);
-                    request.Fields = "id, webViewLink"; //  file id and link
-                    var uploadedFile = await request.UploadAsync();
+                        // get  User's Folder ID inside MCD
+                        var userFolderRequest = DriveService.Files.List();
+                        userFolderRequest.Q = $"name = '{userId}' and mimeType = 'application/vnd.google-apps.folder' and '{mcdFolderId}' in parents and trashed = false";
+                        userFolderRequest.Fields = "files(id, name)";
+                        var userFolderResponse = await userFolderRequest.ExecuteAsync();
+                        string userFolderId = null;
 
-                    if (uploadedFile.Status != Google.Apis.Upload.UploadStatus.Completed) //if there is an error with the file uploading
-                    {
-                        return StatusCode(500, "Error uploading file to Google Drive.");
+                        //here is the logic of searching for a folder, if it wasn't here create one
+                        string parentFolderId = null; // to put in the parent name (folder)
+                        if (userFolderResponse.Files.Count == 0) // if not found
+                        {
+                            var folderMetaData = new Google.Apis.Drive.v3.Data.File()
+                            {
+                                Name = userId, // Folder name
+                                Parents = new List<string> { mcdFolderId },
+                                MimeType = "application/vnd.google-apps.folder",
+                            };
+
+                            var createRequest = DriveService.Files.Create(folderMetaData);
+                            createRequest.Fields = "id";
+                            var folder = createRequest.Execute();
+                            userFolderId = folder.Id; // Use the created folder's ID as the parent
+                        }
+                        else
+                        {
+                            userFolderId = userFolderResponse.Files[0].Id; // Use the existing folder's id as the parent
+                        }
+
+                        //create the document reference in the database before uploading the file in order to get the file id of the database to save in google drive
+
+                        //so that we don't create a category when we have a document with a default type
+                        Category DefaultCategory = _UnitOfWork.Category.Get(u => u.ApplicationUserId == userId && u.CategoryName == "---");
+                        if (DefaultCategory == null)
+                        {
+                            DefaultCategory = new Category() { ApplicationUserId = userId, CategoryName = "---" };
+                        }
+
+
+                        //to save the document details in the db
+                        Document document = new()
+                        {
+                            ApplicationUserId = userId,
+                            Category = DefaultCategory,
+                            Title = documentFile.FileName,
+                            FileName = documentFile.FileName,
+                            FileType = documentFile.ContentType,
+                            UploadDate = DateTime.Now,
+                            UpdateDate = DateTime.Now,
+                            AITaskStatus = "---"
+                        };
+
+                        _UnitOfWork.Document.Add(document); //add it to the db
+                        _UnitOfWork.Save();
+
+                        var newDocumentId = document.Id; //to get the id of the document that was just created to add it to the document name in google drive
+                        singleDocumentId = newDocumentId; //to use it in the redirect to more info page if it was only one document
+                        var FileMetaData = new Google.Apis.Drive.v3.Data.File()
+                        {
+                            Name = newDocumentId + "-" + documentFile.FileName,
+                            Parents = new List<string> { userFolderId }, //the name of the folder in the drive
+                            Description = $"MCD Documents folder uploaded by: {userEmail}"
+
+                        }; //here i will place the file details that will be uploaded in google drive
+
+                        //uploading the file logic
+                        using (var stream = documentFile.OpenReadStream())
+                        {
+                            var request = DriveService.Files.Create(FileMetaData, stream, documentFile.ContentType);
+                            request.Fields = "id, webViewLink"; //  file id and link
+                            var uploadedFile = await request.UploadAsync();
+
+                            if (uploadedFile.Status != Google.Apis.Upload.UploadStatus.Completed) //if there is an error with the file uploading
+                            {
+                                return StatusCode(500, "Error uploading file to Google Drive.");
+                            }
+                            // Get uploaded file details
+                            var fileData = request.ResponseBody;
+                            //in order to grant the user access to the file after creating it (making the file not accessible by someone isn't the owner)
+                            GoogleDriveService.GiveFilePermission(DriveService, "writer", fileData.Id, userEmail);
+
+                        }
+
+
+                        _UnitOfWork.AuditLog.Add(new AuditLog() //in all cases log the action
+                        {
+                            ApplicationUserId = userId,
+                            userEmailAddress = _UnitOfWork.ApplicationUser.Get(u => u.Id == userId).Email,
+                            Action = "Created",
+                            FileName = documentFile.FileName,
+                            ActionDate = DateTime.Now
+                        });
+                        _UnitOfWork.Save(); //save the changes after adding the 
                     }
-                    // Get uploaded file details
-                    var fileData = request.ResponseBody;
-                    //in order to grant the user access to the file after creating it (making the file not accessible by someone isn't the owner)
-                    GoogleDriveService.GiveFilePermission(DriveService, "writer", fileData.Id, userEmail);
-
                 }
-
-
-                _UnitOfWork.AuditLog.Add(new AuditLog() //in all cases log the action
+                if (model.DocumentFiles.Count() > 1) //if the user uploaded more than one file
                 {
-                    ApplicationUserId = userId,
-                    userEmailAddress = _UnitOfWork.ApplicationUser.Get(u => u.Id == userId).Email,
-                    Action = "Created",
-                    FileName = model.DocumentFile.FileName,
-                    ActionDate = DateTime.Now
-                });
-                _UnitOfWork.Save(); //save the changes after adding the 
-                TempData["success"] = "Document uploaded successfully."; //to show the success message to the user
-                return RedirectToAction("MoreInfo", "Document", new { id = document.Id });
+                    TempData["success"] = "Documents uploaded successfully."; //to show the success message to the user
+                    return RedirectToAction("Document");
+                }
+                else if (model.DocumentFiles.Count() == 1) //if the user uploaded only one file
+                {
+                    TempData["success"] = "Document uploaded successfully."; //to show the success message to the user
+                    return RedirectToAction("MoreInfo", "Document", new { id = singleDocumentId });
+                }
             }
             else
             {
@@ -295,7 +304,7 @@ namespace MCD.Areas.Customer.Controllers
 
 
 
-                return RedirectToAction(nameof(Document));
+            return RedirectToAction(nameof(Document));
         }
 
         public IActionResult Privacy()

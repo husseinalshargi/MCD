@@ -10,7 +10,7 @@ namespace MCD.Models.ViewModels
     public class DocumentVM
     {
         public List<Document> documents { get; set; }
-        public IFormFile DocumentFile { get; set; } // to input new file (contains file info name, content type, length, data
+        public List<IFormFile> DocumentFiles { get; set; } // to input new file (contains file info name, content type, length, data
         public bool Summarize { get; set; } 
         public int TotalDocuments { get; set; } // to show the number of documents in the view
         public int pdfCount { get; set; } // to show the number of pdf documents in the view
