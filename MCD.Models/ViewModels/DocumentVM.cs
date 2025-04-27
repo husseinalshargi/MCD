@@ -16,5 +16,6 @@ namespace MCD.Models.ViewModels
         public int pdfCount { get; set; } // to show the number of pdf documents in the view
         public int imageCount { get; set; } // to show the number of image documents in the view
         public int textCount { get; set; } // to show the number of text documents in the view
+        public List<Category> Categories { get; set; } // to show the categories in the view so that the user can select the category of the document which will update the datatables table
     }
 }

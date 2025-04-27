@@ -151,6 +151,7 @@ namespace MCD.Areas.Customer.Controllers
                 pdfCount = DocumentList.Count(u => u.FileType == "application/pdf"), //to show the number of pdf documents in the view
                 textCount = DocumentList.Count(u => u.FileType == "text/plain"), //to show the number of text documents in the view
                 imageCount = DocumentList.Count(u => u.FileType == "image/jpeg" || u.FileType == "image/png" || u.FileType == "image/jpg"), //to show the number of image documents in the view
+                Categories = _UnitOfWork.Category.GetAll(u => u.ApplicationUserId == userId).ToList(), //to show the categories in the view so that the user can select the category of the document which will update the datatables table
             };
 
             return View(viewModel);
@@ -324,8 +325,6 @@ namespace MCD.Areas.Customer.Controllers
             {
                 TempData["error"] = "Please select a file to upload."; //to show the error message to the user
             }
-
-
 
             return RedirectToAction(nameof(Document));
         }

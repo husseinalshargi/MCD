@@ -78,6 +78,16 @@
     <div class="card shadow-sm mb-4">
         <div class="card-header bg-white py-3">
             <h5 class="mb-0 text-primary fw-semibold">Your Documents</h5>
+            <div class="mb-3">
+                <label for="categoryFilter" class="form-label text-muted">Click Here to Filter Documents by Category:</label>
+                <select id="categoryFilter" class="form-select w-auto">
+                    <option value="">All Categories</option>
+                    @foreach (var category in Model.Categories)
+                    {
+                        <option value="@category.CategoryName">@category.CategoryName</option>
+                    }
+                </select>
+            </div>
         </div>
         <div class="card-body">
             <div class="table-responsive">
@@ -216,8 +226,32 @@
         });
 
         fileInput.addEventListener("change", (event) => {
-            displayFiles(event.target.files);
+            const files = event.target.files;
+            const maxSizeInBytes = 100 * 1024 * 1024; //100 MB maximum
+
+            //to filter the valid files
+            const validFiles = Array.from(files).filter(file => {
+                if (file.size > maxSizeInBytes) {
+                    alert(`File "${file.name}" is too large! Maximum allowed size is 100 MB.`);
+                    return false;
+                }
+                return true;
+            });
+
+            if (validFiles.length > 0) {
+                displayFiles(validFiles);
+                fileInput.files = createFileList(validFiles); //replace input files so that it accepts only the valid ones and passes it to the form
+            } else {
+                fileList.innerHTML = ""; //there is no files to show (could be all invalid)
+            }
         });
+
+        function createFileList(files) { //because we can not change the files in the input directly we need to create a new DataTransfer object that holds the valid files that we could pass it as the input
+            const dataTransfer = new DataTransfer();
+            files.forEach(file => dataTransfer.items.add(file));
+            return dataTransfer.files;
+        }
+
 
         function displayFiles(files) {
             fileList.innerHTML = "";

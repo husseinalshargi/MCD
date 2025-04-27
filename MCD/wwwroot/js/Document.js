@@ -62,6 +62,19 @@ function loadDataTable() {
             }
         ]
     });
+    $('#categoryFilter').on('change', function () { //filter the table by the category selected in the dropdown in the ui
+        var selectedCategory = $(this).val(); //get the selected category from the dropdown
+
+        if (selectedCategory) { //if a category is selected
+            dataTable.column(5) //category column in the table is the 5th column starting from 0
+                .search('^' + selectedCategory + '$', true, false) //^ to match the beginning of the string and $ to match the end of the string, true for using regex matching and false for smart search which will make it match the whole string perfectly
+                .draw(); //to update the table with the new search value
+        } else { //if no category is selected the value will be empty so it will show all the data
+            dataTable.column(5)
+                .search('') //clear the search value
+                .draw();
+        }
+    });
 }
 
 function openDocument(userId, documentId, fileName) { // a function to call inside render for getting html in the table
